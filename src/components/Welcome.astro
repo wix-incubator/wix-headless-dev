@@ -64,16 +64,23 @@ import TryPrompt from "./TryPrompt.tsx";
 
   <footer class="footer">
     <div class="footer__row">
-      <div class="footer__brand">
+      <a class="footer__brand footer__powered" href="https://dev.wix.com/docs/go-headless" target="_blank" rel="noreferrer">
+        <span class="footer__powered-prefix">Powered by</span>
         <svg class="footer__logo" viewBox="0 0 166 64" aria-hidden="true">
           <path d="M165.304 0H156.173C153.64 0 151.273 1.25433 149.85 3.35199L137.639 21.3662C137.313 21.844 136.608 21.844 136.283 21.3662L124.071 3.35199C122.651 1.25433 120.281 0 117.748 0H108.617L130.371 32.0894L108.737 64H117.868C120.401 64 122.769 62.7457 124.192 60.648L136.283 42.8126C136.608 42.3349 137.313 42.3349 137.639 42.8126L149.73 60.648C151.15 62.7457 153.52 64 156.053 64H165.184L143.551 32.0894L165.304 0Z"/>
           <path d="M89.8281 6.54652V64H94.1922C97.8088 64 100.74 61.0697 100.74 57.4535V0H96.3755C92.7588 0 89.8281 2.93032 89.8281 6.54652Z"/>
           <path d="M81.8276 0H77.944C73.6681 0 69.9633 2.95701 69.0158 7.12564L60.3278 45.3185L52.7234 9.66632C51.3168 3.0771 44.5559 -1.36641 37.6375 0.544431C33.2307 1.76139 29.9637 5.48434 29.0108 9.95455L21.4839 45.2705L12.8118 7.12831C11.8616 2.95968 8.15687 0 3.88092 0H0L14.5548 63.9973H20.0692C25.0738 63.9973 29.3978 60.4986 30.4415 55.604L39.7461 11.9401C39.8608 11.3984 40.3466 11.006 40.8991 11.006C41.4516 11.006 41.9374 11.3984 42.0522 11.9401L51.3648 55.6067C52.4084 60.5012 56.7324 63.9973 61.7371 63.9973H67.2702L81.8276 0Z"/>
         </svg>
-        <span class="footer__by">A Wix engineering project.</span>
-      </div>
+        <span class="footer__powered-name">Headless</span>
+      </a>
       <nav class="footer__nav" aria-label="Footer">
         <a href="/skill">Download skill bundle</a>
+        <a href="https://github.com/wix-incubator/wix-headless-dev" target="_blank" rel="noreferrer" class="footer__github">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.08c-3.2.69-3.87-1.34-3.87-1.34-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.63 1.58.23 2.75.11 3.04.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.13v3.16c0 .31.21.67.79.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5z"/>
+          </svg>
+          GitHub
+        </a>
         <a href="https://dev.wix.com/skills/wix-headless" target="_blank" rel="noreferrer">Source on dev.wix.com</a>
         <a href="https://dev.wix.com/docs/go-headless" target="_blank" rel="noreferrer">Headless docs</a>
         <a href="https://www.wix.com/about/terms-of-use" target="_blank" rel="noreferrer">Terms of Use</a>
@@ -266,21 +273,45 @@ import TryPrompt from "./TryPrompt.tsx";
     gap: 20px;
   }
   .footer__brand {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
+    text-decoration: none;
+    transition: color 0.15s ease;
   }
+  .footer__powered {
+    color: var(--fg-muted);
+  }
+  .footer__powered:hover { color: var(--fg); }
+  .footer__powered:hover .footer__logo { fill: var(--fg); }
+  .footer__powered-prefix,
+  .footer__powered-name {
+    font-size: 13px;
+  }
+  .footer__powered-name { color: inherit; }
   .footer__logo {
-    height: 16px;
+    height: 14px;
     width: auto;
     fill: var(--fg-muted);
+    transition: fill 0.15s ease;
   }
-  .footer__by { color: var(--fg-muted); }
   .footer__nav {
     display: flex;
     gap: 18px;
     flex-wrap: wrap;
     justify-content: flex-end;
+    align-items: center;
+  }
+  .footer__github {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .footer__github svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+    flex: 0 0 auto;
   }
   .footer__legal {
     display: flex;

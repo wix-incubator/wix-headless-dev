@@ -93,7 +93,6 @@ export default function TryPrompt() {
     <div className="tryprompt">
       <div className="tryprompt__box" onClick={focusInput}>
         <div className="tryprompt__line">
-          <span className="tryprompt__label">try prompt:</span>
           <span className="tryprompt__body">
             <span className="tryprompt__static">build </span>
             {paused ? (
@@ -129,8 +128,10 @@ export default function TryPrompt() {
                 <span className="tryprompt__caret" aria-hidden>|</span>
               </>
             )}
-            <span className="tryprompt__static"> using </span>
-            <span className="tryprompt__host">{HOST}</span>
+            <span className="tryprompt__suffix">
+              <span className="tryprompt__static">using </span>
+              <span className="tryprompt__host">{HOST}</span>
+            </span>
           </span>
         </div>
         <button

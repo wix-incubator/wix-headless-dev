@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { analytics } from "@wix/site";
 
 const INTENTS = [
   "a storefront for handmade ceramics",
@@ -80,6 +81,7 @@ export default function TryPrompt() {
     }
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
+    analytics.buttonClicked();
   };
 
   const focusInput = () => inputRef.current?.focus();

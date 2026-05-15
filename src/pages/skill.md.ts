@@ -10,15 +10,14 @@ const BODY = `# Wix Headless Skill
 
 ## Install
 
-Pick any directory for the bundle and extract it there. \`<SKILL_ROOT>\` in the example below is just a placeholder for the path you chose — substitute whatever your runtime prefers (Claude Code uses \`~/.claude/skills/wix-headless\` so it registers as a native skill; other runtimes can pick any path).
+Extract the bundle into any directory you control. \`<SKILL_ROOT>\` below is a placeholder — substitute whatever path makes sense for your runtime.
 
 \`\`\`bash
-SKILL_ROOT="<pick a directory>"
-mkdir -p "$SKILL_ROOT"
-curl -fsSL ${HOST}/skill.tgz | tar -xzf - -C "$SKILL_ROOT" --strip-components=1
+mkdir -p <SKILL_ROOT>
+curl -fsSL ${HOST}/skill.tgz | tar -xzf - -C <SKILL_ROOT> --strip-components=1
 \`\`\`
 
-Then read \`$SKILL_ROOT/SKILL.md\` and follow it end to end. Every \`<SKILL_ROOT>/...\` path inside that document resolves under the directory you chose.
+Then read \`<SKILL_ROOT>/SKILL.md\` and follow it end to end. Every \`<SKILL_ROOT>/...\` path inside that document resolves under the directory you chose.
 
 ## Browse without installing
 

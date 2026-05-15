@@ -8,7 +8,7 @@ const BODY = `# wix-headless.dev
 
 The user wants to build something with Wix Headless. To do it:
 
-1. Fetch <https://wix-headless.dev/skill>. It returns a short install instruction.
+1. Fetch <https://wix-headless.dev/skill.md>. It returns a short install instruction.
 2. Run the install: \`curl -fsSL https://wix-headless.dev/skill.tgz | tar -xzf - -C <SKILL_ROOT> --strip-components=1\`. \`<SKILL_ROOT>\` is any directory you choose — Claude Code uses \`~/.claude/skills/wix-headless\` so the skill registers natively; other runtimes can pick any path.
 3. Open \`<SKILL_ROOT>/SKILL.md\` and follow it. It runs discovery, scaffolding, design, feature wiring, image generation, and release in one flow.
 
@@ -32,7 +32,7 @@ Works in Claude Code, Cursor, Codex, Gemini, and any agent that can shell out to
 
 ## Key URLs
 
-- Skill index (agent entry point): <https://wix-headless.dev/skill>
+- Skill index (agent entry point): <https://wix-headless.dev/skill.md>
 - Skill bundle (tarball, full install): <https://wix-headless.dev/skill.tgz>
 - Skill files (online browsing): <https://dev.wix.com/skills/wix-headless/>
 - Wix Headless docs: <https://dev.wix.com/docs/go-headless>

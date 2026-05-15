@@ -10,7 +10,7 @@ const INTENTS = [
 ];
 
 const HOST = "wix-headless.dev";
-const SKILL_PATH = "/skill";
+const SKILL_PATH = "/skill.md";
 
 const TYPE_MS = 38;
 const ERASE_MS = 22;

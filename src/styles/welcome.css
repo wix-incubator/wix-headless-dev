@@ -56,12 +56,20 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
 .wordmark__tld { color: var(--fg-muted); }
 .topnav { display: flex; gap: 24px; }
 .topnav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   color: var(--fg-muted);
   text-decoration: none;
   font-size: 14px;
   font-family: var(--mono);
 }
 .topnav a:hover { color: var(--fg); }
+.topnav__icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
 
 /* ===== Bento layout ===== */
 .bento {

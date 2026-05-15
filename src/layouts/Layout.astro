@@ -1,3 +1,7 @@
+---
+import "../styles/xray.css";
+import XRayLayer from "../components/xray/Layer.tsx";
+---
 <!doctype html>
 <html lang="en">
 	<head>
@@ -42,5 +46,6 @@
 	</head>
 	<body>
 		<slot />
+		<XRayLayer client:load />
 	</body>
 </html>

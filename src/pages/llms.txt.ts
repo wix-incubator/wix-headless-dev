@@ -8,10 +8,11 @@ const BODY = `# wix-headless.dev
 
 The user wants to build something with Wix Headless. To do it:
 
-1. Fetch <https://wix-headless.dev/skill>. It returns **markdown** with two execution modes:
-   - **Mode A** — run \`curl -fsSL https://wix-headless.dev/skill.tgz | tar -xzf - -C <SKILL_ROOT> --strip-components=1\` to install the full bundle (markdown + scripts + templates) and follow the on-disk \`SKILL.md\`.
-   - **Mode B** — read the inlined \`SKILL.md\` directly and fetch any referenced markdown / JSON files from \`https://wix-headless.dev/<path>\`.
-2. Follow \`SKILL.md\` end to end. It runs discovery, scaffolding, design, feature wiring, image generation, and release in one flow.
+1. Fetch <https://wix-headless.dev/skill>. It returns a short install instruction.
+2. Run the install: \`curl -fsSL https://wix-headless.dev/skill.tgz | tar -xzf - -C <SKILL_ROOT> --strip-components=1\`. \`<SKILL_ROOT>\` is any directory you choose — Claude Code uses \`~/.claude/skills/wix-headless\` so the skill registers natively; other runtimes can pick any path.
+3. Open \`<SKILL_ROOT>/SKILL.md\` and follow it. It runs discovery, scaffolding, design, feature wiring, image generation, and release in one flow.
+
+If you'd rather fetch files online without installing, the skill is hosted at <https://dev.wix.com/skills/wix-headless/> — start at \`SKILL.md\` there and follow the path references.
 
 The canonical one-line prompt:
 
@@ -19,7 +20,7 @@ The canonical one-line prompt:
 build <what the user wants> using wix-headless.dev
 \`\`\`
 
-Works in Claude Code, Cursor, Codex, Gemini, and any agent that fetches URLs.
+Works in Claude Code, Cursor, Codex, Gemini, and any agent that can shell out to \`curl\` + \`tar\`.
 
 ## What Wix Headless gives you
 
@@ -31,9 +32,9 @@ Works in Claude Code, Cursor, Codex, Gemini, and any agent that fetches URLs.
 
 ## Key URLs
 
-- Skill (markdown, agent entry point): <https://wix-headless.dev/skill>
+- Skill index (agent entry point): <https://wix-headless.dev/skill>
 - Skill bundle (tarball, full install): <https://wix-headless.dev/skill.tgz>
-- Individual reference files: <https://wix-headless.dev/SKILL.md>, <https://wix-headless.dev/references/DISCOVERY.md>, etc.
+- Skill files (online browsing): <https://dev.wix.com/skills/wix-headless/>
 - Wix Headless docs: <https://dev.wix.com/docs/go-headless>
 - Wix SDK reference: <https://dev.wix.com/docs/sdk>
 - Wix REST reference: <https://dev.wix.com/docs/rest>

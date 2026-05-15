@@ -13,11 +13,6 @@ const BODY = `<?xml version="1.0" encoding="UTF-8"?>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://wix-headless.dev/skill.md</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
     <loc>https://wix-headless.dev/llms.txt</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>

@@ -1,44 +1,32 @@
 import type { APIRoute } from "astro";
+import { getSkillFile } from "../lib/skill-files";
 
-const UPSTREAM_BASE = "https://dev.wix.com/skills/wix-headless";
 const CACHE_HEADER = "public, s-maxage=600, stale-while-revalidate=86400";
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ params }) => {
+export const GET: APIRoute = ({ params }) => {
   const raw = (params.path ?? "").toString();
 
-  let path = raw;
-  if (/^skill$/i.test(raw)) path = "SKILL";
+  const candidates: string[] = [`${raw}.md`];
+  if (/^skill$/i.test(raw)) candidates.push("SKILL.md");
 
-  const upstreamUrl = `${UPSTREAM_BASE}/${path}.md`;
-
-  try {
-    const upstream = await fetch(upstreamUrl, {
-      headers: { Accept: "text/plain, text/markdown, */*" },
-    });
-
-    if (!upstream.ok) {
-      return new Response(`Not found upstream: ${upstreamUrl}\n`, {
-        status: upstream.status,
-        headers: { "Content-Type": "text/plain; charset=utf-8" },
+  for (const candidate of candidates) {
+    const content = getSkillFile(candidate);
+    if (content) {
+      return new Response(content, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/markdown; charset=utf-8",
+          "Cache-Control": CACHE_HEADER,
+          "X-Source": `skill/wix-headless/${candidate}`,
+        },
       });
     }
-
-    const body = await upstream.text();
-
-    return new Response(body, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/markdown; charset=utf-8",
-        "Cache-Control": CACHE_HEADER,
-        "X-Source": upstreamUrl,
-      },
-    });
-  } catch (err) {
-    return new Response(`Upstream fetch failed: ${err}\n`, {
-      status: 502,
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
-    });
   }
+
+  return new Response(`Not found: ${raw}.md\n`, {
+    status: 404,
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
 };

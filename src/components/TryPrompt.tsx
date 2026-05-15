@@ -1,13 +1,37 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { analytics } from "@wix/site";
 
-const INTENTS = [
+const INTENTS_DESKTOP = [
   "a storefront for handmade ceramics",
   "a booking site for a yoga studio",
   "a marketplace for local artists",
   "a restaurant with online ordering",
   "a portfolio with a paid clients area",
 ];
+
+// Same length so the typing animation's index math stays valid even if
+// the viewport crosses the breakpoint mid-cycle.
+const INTENTS_MOBILE = [
+  "a storefront",
+  "a booking site",
+  "a marketplace",
+  "a restaurant",
+  "a portfolio",
+];
+
+const MOBILE_QUERY = "(max-width: 600px)";
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_QUERY);
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return isMobile;
+}
 
 const HOST = "wix-headless.dev";
 const SKILL_PATH = "/skill.md";
@@ -17,6 +41,8 @@ const ERASE_MS = 22;
 const HOLD_MS = 1600;
 
 export default function TryPrompt() {
+  const isMobile = useIsMobile();
+  const INTENTS = isMobile ? INTENTS_MOBILE : INTENTS_DESKTOP;
   const [intent, setIntent] = useState("");
   const [intentIndex, setIntentIndex] = useState(0);
   const [phase, setPhase] = useState<"type" | "hold" | "erase">("type");
@@ -141,6 +167,7 @@ export default function TryPrompt() {
           className={`tryprompt__copy ${copied ? "is-copied" : ""}`}
           onClick={(e) => { e.stopPropagation(); handleCopy(); }}
           aria-label="Copy prompt"
+          data-xray="copy-button"
         >
           {copied ? "Copied" : "Copy"}
         </button>

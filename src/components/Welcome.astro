@@ -1,36 +1,14 @@
 ---
 import TryPrompt from "./TryPrompt.tsx";
 import PromptTitle from "./PromptTitle.tsx";
-import WixLogo from "../assets/wix.svg";
-import GithubIcon from "../assets/github.svg";
+import Topbar from "./Topbar.astro";
+import Footer from "./Footer.astro";
+import BuildLog from "./BuildLog.astro";
 import "../styles/welcome.css";
 ---
 
 <div class="page">
-  <header class="topbar">
-    <a class="wordmark" href="/" aria-label="wix-headless.dev — a Wix project">
-      <WixLogo class="wordmark__logo" aria-hidden="true" />
-      <span class="wordmark__divider" aria-hidden="true">/</span>
-      <span class="wordmark__name">headless</span><span class="wordmark__tld">.dev</span>
-    </a>
-    <nav class="topnav">
-      <a href="/skill.md">
-        Skill
-        <svg class="topnav__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M8 2v9M4.5 7.5L8 11l3.5-3.5" />
-          <path d="M2.5 13.5h11" />
-        </svg>
-      </a>
-      <a href="https://dev.wix.com/docs/go-headless" target="_blank" rel="noreferrer">
-        Docs
-        <svg class="topnav__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M6 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3" />
-          <path d="M9 2h5v5" />
-          <path d="M14 2L7.5 8.5" />
-        </svg>
-      </a>
-    </nav>
-  </header>
+  <Topbar />
 
   <main class="bento">
     <section class="bento__hero block">
@@ -39,7 +17,7 @@ import "../styles/welcome.css";
         <span class="hero__title-accent">Wix runs the business behind it.</span>
       </h1>
       <p class="hero__sub">
-        Wix Headless lets you build a custom frontend on the stack of your choice, backed by production-ready Wix business APIs and a full management dashboard out of the box.
+        The recommended path for headless on Wix &mdash; production-ready business APIs, managed hosting and auth, and a full dashboard. You build the frontend; Wix runs everything behind it.
       </p>
     </section>
 
@@ -75,76 +53,134 @@ import "../styles/welcome.css";
         <span class="kicker">out of the box</span>
         <h2 id="features-title" class="features__title">Skip the backend.</h2>
         <p class="features__lede">
-          Production-ready APIs for everything that isn&rsquo;t UI &mdash; managed by Wix, called from your frontend.
+          Everything that isn&rsquo;t UI &mdash; production business APIs and a managed runtime, called from your frontend.
         </p>
       </header>
-      <ul class="features">
-        <li class="feature">
-          <span class="feature__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M5.5 8h13l-1 12.5h-11L5.5 8z" />
-              <path d="M9 8V5.5a3 3 0 0 1 6 0V8" />
-            </svg>
-          </span>
-          <h3 class="feature__name">Commerce</h3>
-          <p class="feature__desc">Storefronts, cart, checkout, orders.</p>
-        </li>
-        <li class="feature">
-          <span class="feature__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
-              <path d="M3.5 10.5h17" />
-              <path d="M8 3v4M16 3v4" />
-              <circle cx="12" cy="15" r="1.4" fill="currentColor" stroke="none" />
-            </svg>
-          </span>
-          <h3 class="feature__name">Bookings</h3>
-          <p class="feature__desc">Services, sessions, calendar, payments.</p>
-        </li>
-        <li class="feature">
-          <span class="feature__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3.5" y="4" width="17" height="4.5" rx="1" />
-              <rect x="3.5" y="9.75" width="17" height="4.5" rx="1" />
-              <rect x="3.5" y="15.5" width="17" height="4.5" rx="1" />
-              <circle cx="7" cy="6.25" r="0.6" fill="currentColor" stroke="none" />
-              <circle cx="7" cy="12" r="0.6" fill="currentColor" stroke="none" />
-              <circle cx="7" cy="17.75" r="0.6" fill="currentColor" stroke="none" />
-            </svg>
-          </span>
-          <h3 class="feature__name">CMS</h3>
-          <p class="feature__desc">Content collections, queries, schemas.</p>
-        </li>
-        <li class="feature">
-          <span class="feature__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 3l8 2.5v6c0 5-3.5 8-8 9.5-4.5-1.5-8-4.5-8-9.5v-6L12 3z" />
-              <path d="M8.5 12l2.5 2.5L15.5 10" />
-            </svg>
-          </span>
-          <h3 class="feature__name">Auth</h3>
-          <p class="feature__desc">Members, identity, sessions.</p>
-        </li>
-      </ul>
+
+      <div class="features__groups">
+        <div class="features__group features__group--apis" aria-labelledby="group-apis">
+          <h3 id="group-apis" class="features__group-label">
+            <span class="features__group-dot features__group-dot--neutral" aria-hidden="true"></span>
+            Business APIs
+          </h3>
+          <ul class="features">
+            <li class="feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5.5 8h13l-1 12.5h-11L5.5 8z" />
+                  <path d="M9 8V5.5a3 3 0 0 1 6 0V8" />
+                </svg>
+              </span>
+              <h4 class="feature__name">Commerce</h4>
+              <p class="feature__desc">Storefronts, cart, checkout, orders.</p>
+            </li>
+            <li class="feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
+                  <path d="M3.5 10.5h17" />
+                  <path d="M8 3v4M16 3v4" />
+                  <circle cx="12" cy="15" r="1.4" fill="currentColor" stroke="none" />
+                </svg>
+              </span>
+              <h4 class="feature__name">Bookings</h4>
+              <p class="feature__desc">Services, sessions, calendar, payments.</p>
+            </li>
+            <li class="feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3.5" y="4" width="17" height="4.5" rx="1" />
+                  <rect x="3.5" y="9.75" width="17" height="4.5" rx="1" />
+                  <rect x="3.5" y="15.5" width="17" height="4.5" rx="1" />
+                  <circle cx="7" cy="6.25" r="0.6" fill="currentColor" stroke="none" />
+                  <circle cx="7" cy="12" r="0.6" fill="currentColor" stroke="none" />
+                  <circle cx="7" cy="17.75" r="0.6" fill="currentColor" stroke="none" />
+                </svg>
+              </span>
+              <h4 class="feature__name">CMS</h4>
+              <p class="feature__desc">Content collections, queries, schemas.</p>
+            </li>
+            <li class="feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3l8 2.5v6c0 5-3.5 8-8 9.5-4.5-1.5-8-4.5-8-9.5v-6L12 3z" />
+                  <path d="M8.5 12l2.5 2.5L15.5 10" />
+                </svg>
+              </span>
+              <h4 class="feature__name">Auth</h4>
+              <p class="feature__desc">Members, identity, sessions.</p>
+            </li>
+          </ul>
+        </div>
+
+        <div class="features__seam" aria-hidden="true">
+          <span class="features__seam-badge">+</span>
+        </div>
+
+        <div class="features__group features__group--platform" aria-labelledby="group-platform">
+          <h3 id="group-platform" class="features__group-label">
+            <span class="features__group-dot features__group-dot--accent" aria-hidden="true"></span>
+            Managed Platform
+          </h3>
+          <ul class="features">
+            <li class="feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 18h10a3.5 3.5 0 0 0 .6-6.95A5.5 5.5 0 0 0 7 10.5 4 4 0 0 0 7 18z" />
+                </svg>
+              </span>
+              <h4 class="feature__name">Hosting</h4>
+              <p class="feature__desc">Global CDN, SSL, auto-scaling.</p>
+            </li>
+            <li class="feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4.5" width="18" height="15" rx="2" />
+                  <path d="M7.5 10l3 2-3 2" />
+                  <path d="M13 15h4" />
+                </svg>
+              </span>
+              <h4 class="feature__name">Wix CLI</h4>
+              <p class="feature__desc">Code-first, local dev workflow.</p>
+            </li>
+            <li class="feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8.358 20.162c-1.186-1.07-1.532-3.316-1.038-4.944.856 1.026 2.043 1.352 3.272 1.535 1.897.283 3.76.177 5.522-.678.202-.098.388-.229.608-.36.166.473.209.95.151 1.437-.14 1.185-.738 2.1-1.688 2.794-.38.277-.782.525-1.175.787-1.205.804-1.531 1.747-1.078 3.119l.044.148a3.158 3.158 0 0 1-1.407-1.188 3.31 3.31 0 0 1-.544-1.815c-.004-.32-.004-.642-.048-.958-.106-.769-.472-1.113-1.161-1.133-.707-.02-1.267.411-1.415 1.09-.012.053-.028.104-.045.165h.002zm-5.961-4.445s3.24-1.575 6.49-1.575l2.451-7.565c.092-.366.36-.614.662-.614.302 0 .57.248.662.614l2.45 7.565c3.85 0 6.491 1.575 6.491 1.575L16.088.727C15.93.285 15.663 0 15.303 0H8.697c-.36 0-.615.285-.784.727l-5.516 14.99z" />
+                </svg>
+              </span>
+              <h4 class="feature__name">Astro framework</h4>
+              <p class="feature__desc">Server-rendered pages with React, Vue, Svelte, or Solid.</p>
+            </li>
+            <li class="feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 20V11" />
+                  <path d="M10 20V4" />
+                  <path d="M16 20v-7" />
+                  <path d="M3 20h18" />
+                </svg>
+              </span>
+              <h4 class="feature__name">Analytics</h4>
+              <p class="feature__desc">Page views, carts, purchases &mdash; GA4 and Pixel ready.</p>
+            </li>
+            <li class="feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="10.5" cy="10.5" r="6" />
+                  <path d="M20.5 20.5L15 15" />
+                </svg>
+              </span>
+              <h4 class="feature__name">SEO</h4>
+              <p class="feature__desc">Server-rendered routes, sitemaps, metadata.</p>
+            </li>
+          </ul>
+        </div>
+      </div>
     </section>
+
+    <BuildLog />
   </main>
 
-  <footer class="footer">
-    <div class="footer__row">
-      <a class="footer__brand footer__powered" href="https://dev.wix.com/docs/go-headless" target="_blank" rel="noreferrer">
-        <span class="footer__powered-prefix">Powered by Wix Headless</span>
-      </a>
-      <nav class="footer__nav" aria-label="Footer">
-        <a href="https://github.com/wix-incubator/wix-headless-dev" target="_blank" rel="noreferrer" class="footer__github">
-          <GithubIcon aria-hidden="true" />
-          GitHub
-        </a>
-        <a href="https://www.wix.com/about/terms-of-use" target="_blank" rel="noreferrer">Terms of Use</a>
-        <a href="https://www.wix.com/about/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>
-      </nav>
-    </div>
-    <div class="footer__legal">
-      <span>&copy; 2026 Wix.com</span>
-    </div>
-  </footer>
+  <Footer />
 </div>

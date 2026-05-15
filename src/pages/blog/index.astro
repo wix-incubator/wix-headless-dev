@@ -1,0 +1,168 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Topbar from "../../components/Topbar.astro";
+import Footer from "../../components/Footer.astro";
+import { posts } from "@wix/blog";
+import { members } from "@wix/members";
+import { media } from "@wix/sdk";
+import "../../styles/welcome.css";
+import "../../styles/blog.css";
+
+let postList: posts.Post[] = [];
+let listError: string | null = null;
+const memberMap: Record<string, members.Member> = {};
+
+try {
+  const res = await posts.listPosts({
+    fieldsets: ["URL", "METRICS"],
+    paging: { limit: 24 },
+  });
+  postList = res.posts ?? [];
+
+  const memberIds = Array.from(
+    new Set(postList.map((p) => p.memberId).filter(Boolean)),
+  ) as string[];
+  if (memberIds.length > 0) {
+    const fetched = await Promise.all(
+      memberIds.map((id) => members.getMember(id).catch(() => null)),
+    );
+    for (const m of fetched) {
+      if (m?._id) memberMap[m._id] = m;
+    }
+  }
+} catch (err) {
+  listError = err instanceof Error ? err.message : "Failed to load posts.";
+}
+
+const dateFmt = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
+---
+
+<Layout>
+  <div class="page">
+    <Topbar />
+
+    <main class="blog-feed">
+      <header class="blog-feed__header">
+        <span class="kicker">field notes</span>
+        <h1 class="blog-feed__title">The build log.</h1>
+        <p class="blog-feed__lede">
+          Posts about how this very site was built &mdash; the diptych, the
+          X-Ray mode, the prompt box, the bookings flow. Each one is delivered
+          by Wix Blogs, fetched server-side from the same Wix backend that runs
+          the rest of the site.
+        </p>
+      </header>
+
+      {
+        listError && (
+          <div class="blog-feed__empty">
+            <p>The blog backend didn&rsquo;t respond.</p>
+            <code>{listError}</code>
+          </div>
+        )
+      }
+
+      {
+        !listError && postList.length === 0 && (
+          <div class="blog-feed__empty">
+            <p>No posts yet &mdash; check back soon.</p>
+          </div>
+        )
+      }
+
+      {
+        postList.length > 0 && (
+          <ul class="blog-feed__grid" data-xray="blog-feed">
+            {postList.map((post) => {
+              const directUrl = media.getImageUrl(post.media?.wixMedia?.image!).url;
+              const cover = directUrl;
+              const date = post.firstPublishedDate
+                ? dateFmt.format(new Date(post.firstPublishedDate))
+                : "";
+              const member = post.memberId ? memberMap[post.memberId] : null;
+              const authorName = member?.profile?.nickname?.trim() || null;
+              const authorPhoto = member?.profile?.photo?.url || null;
+              const authorInitial = (authorName || post.title || "·").charAt(0);
+              return (
+                <li class="post-card">
+                  <a class="post-card__link" href={`/blog/${post.slug}`}>
+                    {cover ? (
+                      <div class="post-card__cover">
+                        <img src={cover} alt="" loading="lazy" />
+                      </div>
+                    ) : (
+                      <div
+                        class="post-card__cover post-card__cover--blank"
+                        aria-hidden="true"
+                      >
+                        <span>{post.title?.charAt(0) ?? "·"}</span>
+                      </div>
+                    )}
+                    <div class="post-card__meta">
+                      {post.pinned && (
+                        <span class="post-card__pinned">pinned</span>
+                      )}
+                      {date && <span class="post-card__date">{date}</span>}
+                      {post.minutesToRead != null && (
+                        <span class="post-card__read">
+                          {post.minutesToRead} min read
+                        </span>
+                      )}
+                    </div>
+                    <h2 class="post-card__title">{post.title}</h2>
+                    {post.excerpt && (
+                      <p class="post-card__excerpt">{post.excerpt}</p>
+                    )}
+                    {authorName && (
+                      <div class="post-card__author">
+                        {authorPhoto ? (
+                          <>
+                            <img
+                              class="post-card__author-avatar post-card__author-avatar--photo"
+                              src={authorPhoto}
+                              alt=""
+                              loading="lazy"
+                              referrerpolicy="no-referrer"
+                              onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"
+                            />
+                            <span
+                              class="post-card__author-avatar"
+                              aria-hidden="true"
+                              style="display:none"
+                            >
+                              {authorInitial}
+                            </span>
+                          </>
+                        ) : (
+                          <span
+                            class="post-card__author-avatar"
+                            aria-hidden="true"
+                          >
+                            {authorInitial}
+                          </span>
+                        )}
+                        <span class="post-card__author-name">
+                          {authorName}
+                          <span class="post-card__author-collab">
+                            {" "}
+                            × Claude Code
+                          </span>
+                        </span>
+                      </div>
+                    )}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        )
+      }
+    </main>
+
+    <Footer />
+  </div>
+</Layout>

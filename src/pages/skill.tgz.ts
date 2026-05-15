@@ -16,9 +16,7 @@ export const GET: APIRoute = async () => {
       });
     }
 
-    const body = await upstream.arrayBuffer();
-
-    return new Response(body, {
+    return new Response(upstream.body, {
       status: 200,
       headers: {
         "Content-Type": "application/gzip",

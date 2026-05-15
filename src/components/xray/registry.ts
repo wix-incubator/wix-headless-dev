@@ -50,7 +50,7 @@ wix release`,
   "skill-route": {
     id: "skill-route",
     capability: "Astro API endpoint",
-    title: "The /skill route",
+    title: "The /skill.md route",
     summary:
       "An on-demand Astro API route. Fetches the canonical Wix Headless skill markdown from Wix's docs CDN and serves it cached at the edge.",
     code: `export const GET: APIRoute = async ({ params }) => {

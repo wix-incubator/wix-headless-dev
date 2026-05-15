@@ -454,7 +454,7 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
   border: 1px solid var(--border-strong);
   border-radius: 10px;
   padding: 20px 22px;
-  min-height: 96px;
+  height: 109px;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -548,6 +548,11 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
     flex-direction: column;
     align-items: stretch;
     gap: 18px;
+    height: auto;
+    min-height: 109px;
+  }
+  .tryprompt__line {
+    min-height: 67px;
   }
   .tryprompt__copy {
     align-self: center;

@@ -529,6 +529,11 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
   .feature {
     padding: 14px 16px;
     column-gap: 16px;
+    /* Description is hidden on mobile (below). With only the name left in
+       the name column, vertically center it against the icon instead of
+       inheriting the desktop `align-items: start` (which keeps the name
+       top-aligned, leaving an awkward gap below it beside the icon). */
+    align-items: center;
   }
   .feature__icon {
     width: 32px;

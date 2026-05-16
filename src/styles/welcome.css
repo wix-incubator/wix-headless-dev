@@ -471,9 +471,17 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
   letter-spacing: -0.02em;
   color: var(--fg);
 }
+.feature__purpose {
+  margin: 0;
+  grid-column: 2;
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  color: var(--fg);
+}
 .feature__desc {
   margin: 0;
-  font-size: var(--fs-base);
+  grid-column: 2;
+  font-size: var(--fs-sm);
   line-height: 1.5;
   color: var(--fg-muted);
   min-height: 3em;
@@ -555,9 +563,6 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
   display: flex;
   flex-direction: column;
   gap: 14px;
-  /* Match the card's outer padding (20-28px) + an item's top padding (18px)
-     so the kicker sits visually level with the first post's meta row. */
-  padding-top: clamp(38px, 4vw, 46px);
 }
 .buildlog__title {
   margin: 0;

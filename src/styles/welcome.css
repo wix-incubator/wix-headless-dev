@@ -102,6 +102,7 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
     "hero"
     "prompt"
     "steps"
+    "manual"
     "features"
     "buildlog";
   padding: 8px 0 32px;
@@ -109,6 +110,7 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
 .bento__hero       { grid-area: hero; }
 .bento__prompt-zone { grid-area: prompt; }
 .bento__steps      { grid-area: steps; }
+.bento__manual     { grid-area: manual; }
 .bento__features   { grid-area: features; }
 .bento__buildlog   { grid-area: buildlog; }
 
@@ -270,6 +272,121 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
     border-left: none;
     border-top: 1px solid var(--border-strong);
   }
+}
+
+/* ===== Manual block (CLI quickstart, secondary path to the prompt) =====
+   Lives between the agent steps and the features diptych. Deliberately
+   no yellow accent — the prompt zone is the centerpiece, this is the
+   "or, manually" alternative. Same .block padding rhythm as features. */
+.bento__manual {
+  padding: clamp(24px, 3vw, 32px) clamp(24px, 3.5vw, 36px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--bg-card);
+}
+.manual__header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 56ch;
+}
+.manual__title {
+  margin: 0;
+  font-size: var(--fs-section);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--fg);
+}
+.manual__lede {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: 1.55;
+  color: var(--fg-muted);
+}
+
+/* CLI quickstart — tabs row + command box. */
+.cli {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cli__tabs {
+  display: inline-flex;
+  gap: 4px;
+}
+.cli__tab {
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg-faint);
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.cli__tab:hover { color: var(--fg-muted); }
+.cli__tab.is-active {
+  color: var(--accent);
+  border-color: rgba(250, 255, 0, 0.35);
+  background: rgba(250, 255, 0, 0.06);
+}
+.cli__box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  background: var(--bg-card-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  cursor: text;
+  transition: border-color 0.15s ease;
+}
+.cli__box:hover { border-color: #3a3a40; }
+.cli__line {
+  flex: 1;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  overflow-x: auto;
+  min-width: 0;
+}
+.cli__prefix { color: var(--fg-faint); }
+.cli__command { color: var(--fg); white-space: nowrap; }
+.cli__copy {
+  flex: 0 0 auto;
+  background: transparent;
+  color: var(--fg-muted);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: var(--mono);
+  font-size: var(--fs-base);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.cli__copy:hover { color: var(--fg); border-color: #3a3a40; }
+.cli__copy.is-copied {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(250, 255, 0, 0.06);
+}
+
+@media (max-width: 600px) {
+  .cli__box {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .cli__copy { align-self: center; padding: 10px 32px; }
 }
 
 /* ===== Features block ===== */

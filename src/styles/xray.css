@@ -98,6 +98,10 @@ body.xray-on [data-xray="blog-feed"]::after {
   top: -24px;
 }
 
+body.xray-on [data-xray="wix-cli"]::after {
+  top: -24px;
+}
+
 /* ===== Drawer (right side, slides in) ===== */
 .xray-drawer-scrim {
   position: fixed;

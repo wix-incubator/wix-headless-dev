@@ -139,7 +139,7 @@ const initialViews = postMetrics?.views ?? 0;
           )}
 
           <div class="post__body">
-            <PostBody content={post.richContent ?? null} fallback={post.excerpt ?? ""} client:only="react" />
+            <PostBody content={post.richContent ?? null} fallback={post.excerpt ?? ""} client:idle />
           </div>
 
           <footer class="post__footer">

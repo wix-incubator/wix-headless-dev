@@ -1,6 +1,7 @@
 ---
 import TryPrompt from "./TryPrompt.tsx";
 import PromptTitle from "./PromptTitle.tsx";
+import InstallSkill from "./InstallSkill.tsx";
 import Topbar from "./Topbar.astro";
 import Footer from "./Footer.astro";
 import BuildLog from "./BuildLog.astro";
@@ -25,6 +26,17 @@ import "../styles/welcome.css";
       <section class="bento__prompt block" aria-label="Try the prompt">
         <PromptTitle client:load />
         <TryPrompt client:load />
+        <div class="bento__prompt-alt">
+          <span class="bento__prompt-alt-divider" aria-hidden="true">
+            <span class="bento__prompt-alt-divider-line"></span>
+            <span class="bento__prompt-alt-divider-word">or</span>
+            <span class="bento__prompt-alt-divider-line"></span>
+          </span>
+          <InstallSkill client:load />
+          <p class="bento__prompt-alt-hint">
+            Adds the <code>wix-headless</code> skill to your agent.
+          </p>
+        </div>
       </section>
     </div>
 

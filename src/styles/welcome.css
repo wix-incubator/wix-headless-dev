@@ -77,12 +77,12 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
 }
 .topnav a:hover { color: var(--fg); }
 
-/* Mobile: hide the Skill link and the X-Ray toggle.
-   Mobile users won't drop the prompt into an agent on their phone
-   and won't be inspecting elements with a side drawer either. */
+/* Mobile: hide the Skill link only. The Skill route is for pasting into
+   a coding agent — no one's doing that on a phone. The X-Ray toggle
+   stays visible so mobile visitors can still inspect; its appearance
+   is tightened in xray.css's mobile block (icon-only, full-width drawer). */
 @media (max-width: 600px) {
-  .topnav a[data-xray="skill-route"],
-  .xray-toggle {
+  .topnav a[data-xray="skill-route"] {
     display: none;
   }
 }

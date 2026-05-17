@@ -98,6 +98,10 @@ body.xray-on [data-xray="blog-feed"]::after {
   top: -24px;
 }
 
+body.xray-on [data-xray="wix-cli"]::after {
+  top: -24px;
+}
+
 /* ===== Drawer (right side, slides in) ===== */
 .xray-drawer-scrim {
   position: fixed;
@@ -260,11 +264,36 @@ body.xray-on [data-xray="blog-feed"]::after {
   body.xray-on [data-xray] {
     outline-offset: 4px;
   }
+
   body.xray-on [data-xray]::after {
-    top: -8px;
-    right: 4px;
+    left: 0;
+    right: auto;
     padding: 1px 6px;
   }
+
+  .xray-toggle {
+    padding: 6px 10px;
+  }
+  .xray-toggle__label {
+    display: none;
+  }
+
+  .xray-drawer {
+    width: 100%;
+  }
+
+  body.xray-on [data-xray="blog-feed"]::after {
+    bottom: -24px;
+    top: auto;
+    right: 0;
+    left: auto;
+  }
+  
+  body.xray-on [data-xray="wix-cli"]::after {
+    right: 0;
+    left: auto;
+  }
+
   .xray-drawer__inner {
     padding: 18px 18px 28px;
   }

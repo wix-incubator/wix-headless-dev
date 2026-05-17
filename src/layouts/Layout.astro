@@ -41,6 +41,30 @@ import XRayLayer from "../components/xray/Layer.tsx";
 			content="Headless commerce, bookings, CMS, identity — agent-wired, prompt-deep."
 		/>
 		<meta name="theme-color" content="#0a0a0a" />
+		<script type="application/ld+json" set:html={JSON.stringify({
+			"@context": "https://schema.org",
+			"@graph": [
+				{
+					"@type": "Organization",
+					"@id": "https://wix-headless.dev/#org",
+					name: "Wix Headless",
+					url: "https://wix-headless.dev/",
+					logo: "https://wix-headless.dev/icon.png",
+					sameAs: [
+						"https://github.com/wix-incubator/wix-headless-dev",
+						"https://twitter.com/Wix",
+					],
+				},
+				{
+					"@type": "WebSite",
+					"@id": "https://wix-headless.dev/#site",
+					url: "https://wix-headless.dev/",
+					name: "wix-headless.dev",
+					description: "Headless commerce, bookings, CMS, identity — agent-wired, prompt-deep. Drop one prompt into any coding agent and ship a real Wix site.",
+					publisher: { "@id": "https://wix-headless.dev/#org" },
+				},
+			],
+		})} />
 		<link rel="preconnect" href="https://rsms.me/" />
 		<link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
 	</head>

@@ -1,8 +1,16 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Welcome from '../components/Welcome.astro';
+import { loadSEOTagsServiceConfig } from '@wix/seo/services';
+
+const seoTagsServiceConfig = await loadSEOTagsServiceConfig({
+	pageUrl: Astro.url.href,
+	itemData: {
+		pageName: 'Home',
+	},
+});
 ---
 
-<Layout>
+<Layout seoTagsServiceConfig={seoTagsServiceConfig}>
 	<Welcome />
 </Layout>

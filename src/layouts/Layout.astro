@@ -1,10 +1,21 @@
 ---
 import "../styles/xray.css";
 import XRayLayer from "../components/xray/Layer.tsx";
+import { SEO } from "@wix/seo/components";
+import type { SEOTagsServiceConfig } from "@wix/seo/services";
+
+interface Props {
+	seoTagsServiceConfig?: SEOTagsServiceConfig;
+}
+
+const { seoTagsServiceConfig } = Astro.props;
 ---
 <!doctype html>
 <html lang="en">
 	<head>
+		{seoTagsServiceConfig && (
+			<SEO.Tags seoTagsServiceConfig={seoTagsServiceConfig} slot="seo-tags" />
+		)}
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/png" sizes="192x192" href="/icon.png" />

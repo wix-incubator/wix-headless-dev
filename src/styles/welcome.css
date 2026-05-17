@@ -26,7 +26,17 @@
 }
 
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
 
 .page {
   min-height: 100vh;
@@ -36,6 +46,7 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
   max-width: 1180px;
   margin: 0 auto;
   width: 100%;
+  overflow-x: hidden;
 }
 
 .topbar {
@@ -82,6 +93,10 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
    stays visible so mobile visitors can still inspect; its appearance
    is tightened in xray.css's mobile block (icon-only, full-width drawer). */
 @media (max-width: 600px) {
+  .page {
+    padding-inline: 16px;
+  }
+
   .topnav a[data-xray="skill-route"] {
     display: none;
   }
@@ -96,6 +111,9 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
 /* ===== Bento layout ===== */
 .bento {
   display: grid;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   gap: 16px;
   grid-template-columns: 1fr;
   grid-template-areas:
@@ -113,6 +131,11 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
 .bento__manual     { grid-area: manual; }
 .bento__features   { grid-area: features; }
 .bento__buildlog   { grid-area: buildlog; }
+.bento > * {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
 
 .block {
   background: var(--bg-card);
@@ -120,6 +143,7 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
   border-radius: var(--radius);
   padding: 28px;
   position: relative;
+  min-width: 0;
 }
 
 .kicker {
@@ -148,6 +172,19 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); fon
   max-width: 18ch;
 }
 @media (max-width: 600px) {
+  .bento {
+    overflow-x: hidden;
+  }
+
+  .bento__hero,
+  .bento__prompt-zone,
+  .bento__steps,
+  .bento__manual,
+  .bento__features,
+  .bento__buildlog {
+    justify-self: stretch;
+  }
+
   .hero__title {
     line-height: 1.1;
     margin-bottom: 22px;

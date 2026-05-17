@@ -83,6 +83,34 @@ const { posts: postList } = await posts.listPosts({
     githubUrl: `${REPO}/src/pages/blog/index.astro`,
     docsUrl: "https://dev.wix.com/docs/sdk/backend-modules/blog/introduction",
   },
+  "book-engineer": {
+    id: "book-engineer",
+    capability: "Wix Bookings",
+    title: "Talk to an engineer",
+    summary:
+      "Slots are fetched server-side at page render so the modal opens with availability already in hand. Each slot lists every staff member free at that time. Clicking Confirm calls createBooking from the browser as an anonymous visitor.",
+    code: `import { services, availabilityTimeSlots, bookings } from "@wix/bookings";
+
+const { items: [service] } = await services
+  .queryServices().eq("hidden", false).limit(1).find();
+
+const { timeSlots } = await availabilityTimeSlots.listAvailabilityTimeSlots({
+  serviceId: service._id,
+  fromLocalDate, toLocalDate,
+  bookable: true,
+  includeResourceTypeIds: [service.primaryResourceType],
+});
+
+await bookings.createBooking({
+  bookedEntity: { slot: { ...slot, resource: { _id: staffId } } },
+  contactDetails: { firstName, lastName, email },
+  totalParticipants: 1,
+});`,
+    codeLang: "ts",
+    codePath: "src/components/BookEngineer.tsx",
+    githubUrl: `${REPO}/src/components/BookEngineer.tsx`,
+    docsUrl: "https://dev.wix.com/docs/sdk/backend-modules/bookings/introduction",
+  },
 };
 
 export const entryLabel = (id: string) => registry[id]?.capability ?? id;

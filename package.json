@@ -17,6 +17,8 @@
     "@wix/astro": "^2.13.0",
     "@wix/astro-pages": "^2.0.3",
     "@wix/blog": "^1.0.606",
+    "@wix/bookings": "^1.0.1386",
+    "@wix/crm": "^1.0.1534",
     "@wix/dashboard": "^1.3.36",
     "@wix/essentials": "^1.0.6",
     "@wix/ricos": "^10.178.1",

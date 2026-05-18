@@ -60,12 +60,12 @@ const publishedDate = post?.firstPublishedDate
 
 const heroUrl = post?.media?.embedMedia?.thumbnail?.url ?? null;
 
-const canonicalUrl = `https://wix-headless.dev/blog/${post?.slug ?? slug}`;
+const canonicalUrl = `https://www.wix-headless.dev/blog/${post?.slug ?? slug}`;
 const initialLikes = postMetrics?.likes ?? 0;
 const initialViews = postMetrics?.views ?? 0;
 ---
 
-<Layout>
+<Layout canonical={canonicalUrl}>
   <div class="page">
     <Topbar />
 
@@ -139,7 +139,7 @@ const initialViews = postMetrics?.views ?? 0;
           )}
 
           <div class="post__body">
-            <PostBody content={post.richContent ?? null} fallback={post.excerpt ?? ""} client:only="react" />
+            <PostBody content={post.richContent ?? null} fallback={post.excerpt ?? ""} client:idle />
           </div>
 
           <footer class="post__footer">

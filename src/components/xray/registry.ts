@@ -66,6 +66,21 @@ wix release`,
     githubUrl: `${REPO}/src/pages/%5B...path%5D.md.ts`,
     docsUrl: "https://docs.astro.build/en/guides/endpoints/",
   },
+  "wix-cli": {
+    id: "wix-cli",
+    capability: "Wix CLI",
+    title: "Bootstrap with one command",
+    summary:
+      "The Wix CLI scaffolds a full Wix Managed Headless project — auth, hosting, dashboard, and an Astro app — before you write a line of code. `wix dev` runs locally, `wix release` ships to production.",
+    code: `npm create @wix/new@latest headless
+
+# then:
+cd headless
+wix dev`,
+    codeLang: "bash",
+    githubUrl: "https://github.com/wix/cli",
+    docsUrl: "https://dev.wix.com/docs/go-headless/develop-your-project/wix-cli",
+  },
   "blog-feed": {
     id: "blog-feed",
     capability: "Wix Blogs",

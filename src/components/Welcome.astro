@@ -4,8 +4,78 @@ import PromptTitle from "./PromptTitle.tsx";
 import Topbar from "./Topbar.astro";
 import Footer from "./Footer.astro";
 import BuildLog from "./BuildLog.astro";
+import BookEngineer from "./BookEngineer.tsx";
+import { services, availabilityTimeSlots, staffMembers } from "@wix/bookings";
 import Manual from "./Manual.astro";
 import "../styles/welcome.css";
+
+const SERVICE_HINTS = ["engineer", "consultation", "call", "talk", "office hours"];
+
+let bookingService: services.Service | null = null;
+let bookingSlots: availabilityTimeSlots.TimeSlot[] = [];
+let staffById: Record<string, { name: string; imageUrl?: string; description?: string }> = {};
+try {
+  const servicesRes = await services
+    .queryServices()
+    .eq("hidden", false)
+    .limit(25)
+    .find();
+  const all = servicesRes.items ?? [];
+
+  bookingService =
+    all.find((s) => {
+      const n = String(s?.name ?? "").toLowerCase();
+      return SERVICE_HINTS.some((h) => n.includes(h));
+    }) ?? all[0] ?? null;
+  if (bookingService?._id) {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const isoLocal = (d: Date) =>
+      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    const from = new Date();
+    const to = new Date();
+    to.setDate(from.getDate() + 14);
+    const [slotsRes, staffRes] = await Promise.all([
+      availabilityTimeSlots.listAvailabilityTimeSlots({
+        serviceId: bookingService._id,
+        fromLocalDate: isoLocal(from),
+        toLocalDate: isoLocal(to),
+        bookable: true,
+        // Required for slots to come back with `availableResources` populated
+        // (the list of staff free at each slot). Without it the staff-filter
+        // chips in BookEngineer never appear because `availableStaff` stays
+        // empty. The field exists at runtime on the service response but
+        // isn't on the v2 Service TS interface — cast and conditional-spread.
+        ...((bookingService as any).primaryResourceType && {
+          includeResourceTypeIds: [(bookingService as any).primaryResourceType],
+        }),
+      }),
+      staffMembers.queryStaffMembers().limit(25).find().catch(() => ({ items: [] })),
+    ]);
+
+    bookingSlots = slotsRes.timeSlots ?? [];
+    const wixImageToUrl = (img: any): string | undefined => {
+      if (!img) return undefined;
+      if (typeof img === "string") {
+        const m = /^wix:image:\/\/v1\/([^/]+)/.exec(img);
+        return m ? `https://static.wixstatic.com/media/${m[1]}` : undefined;
+      }
+      return img.url;
+    };
+    for (const s of staffRes?.items ?? []) {
+      if (s?.resourceId) {
+        staffById[s.resourceId] = {
+          name: s.name!,
+          imageUrl: wixImageToUrl(s.mainMedia?.image),
+          description: s.description?.trim() || undefined,
+        };
+      }
+    }
+  }
+} catch {
+  bookingService = null;
+  bookingSlots = [];
+  staffById = {};
+}
 ---
 
 <div class="page">
@@ -183,6 +253,15 @@ import "../styles/welcome.css";
     </section>
 
     <BuildLog />
+
+    <section class="bento__contact block" aria-labelledby="contact-title" data-xray="book-engineer">
+      <span class="kicker">questions?</span>
+      <h2 id="contact-title" class="contact__title">Talk to a real engineer.</h2>
+      <p class="contact__lede">
+        Stuck, evaluating, or just curious how Wix Headless fits your stack? Book 30 minutes with someone who built it. Powered by Wix Bookings &mdash; the same API your site would use.
+      </p>
+      <BookEngineer client:load initialService={bookingService} initialSlots={bookingSlots} staffById={staffById} />
+    </section>
   </main>
 
   <Footer />

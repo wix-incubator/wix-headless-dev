@@ -10,18 +10,19 @@ import "../styles/welcome.css";
 
 const SERVICE_HINTS = ["engineer", "consultation", "call", "talk", "office hours"];
 
-let bookingService: any = null;
-let bookingSlots: any[] = [];
-let staffById: Record<string, { name: string; imageUrl?: string }> = {};
+let bookingService: services.Service | null = null;
+let bookingSlots: availabilityTimeSlots.TimeSlot[] = [];
+let staffById: Record<string, { name: string; imageUrl?: string; description?: string }> = {};
 try {
-  const servicesRes: any = await services
+  const servicesRes = await services
     .queryServices()
     .eq("hidden", false)
     .limit(25)
     .find();
   const all = servicesRes.items ?? [];
+
   bookingService =
-    all.find((s: any) => {
+    all.find((s) => {
       const n = String(s?.name ?? "").toLowerCase();
       return SERVICE_HINTS.some((h) => n.includes(h));
     }) ?? all[0] ?? null;
@@ -32,19 +33,26 @@ try {
     const from = new Date();
     const to = new Date();
     to.setDate(from.getDate() + 14);
-    const [slotsRes, staffRes]: any[] = await Promise.all([
+    const [slotsRes, staffRes] = await Promise.all([
       availabilityTimeSlots.listAvailabilityTimeSlots({
         serviceId: bookingService._id,
         fromLocalDate: isoLocal(from),
         toLocalDate: isoLocal(to),
         bookable: true,
-        cursorPaging: { limit: 12 },
-        ...(bookingService.primaryResourceType && {
-          includeResourceTypeIds: [bookingService.primaryResourceType],
+        // Required for slots to come back with `availableResources` populated
+        // (the list of staff free at each slot). Without it the staff-filter
+        // chips in BookEngineer never appear because `availableStaff` stays
+        // empty. The field exists at runtime on the service response but
+        // isn't on the v2 Service TS interface — cast and conditional-spread.
+        ...((bookingService as any).primaryResourceType && {
+          includeResourceTypeIds: [(bookingService as any).primaryResourceType],
         }),
-      } as any),
+      }),
       staffMembers.queryStaffMembers().limit(25).find().catch(() => ({ items: [] })),
     ]);
+
+    console.log({from, to, slotsRes})
+
     bookingSlots = slotsRes.timeSlots ?? [];
     const wixImageToUrl = (img: any): string | undefined => {
       if (!img) return undefined;
@@ -57,8 +65,9 @@ try {
     for (const s of staffRes?.items ?? []) {
       if (s?.resourceId) {
         staffById[s.resourceId] = {
-          name: s.name,
+          name: s.name!,
           imageUrl: wixImageToUrl(s.mainMedia?.image),
+          description: s.description?.trim() || undefined,
         };
       }
     }
@@ -248,7 +257,7 @@ try {
       <span class="kicker">questions?</span>
       <h2 id="contact-title" class="contact__title">Talk to a real engineer.</h2>
       <p class="contact__lede">
-        Stuck, evaluating, or just curious how Wix Headless fits your stack? Book 30 minutes with someone who builds on it. Powered by Wix Bookings &mdash; the same API your storefront would use.
+        Stuck, evaluating, or just curious how Wix Headless fits your stack? Book 30 minutes with someone who built it. Powered by Wix Bookings &mdash; the same API your site would use.
       </p>
       <BookEngineer client:load initialService={bookingService} initialSlots={bookingSlots} staffById={staffById} />
     </section>

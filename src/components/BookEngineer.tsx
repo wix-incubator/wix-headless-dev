@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { bookings } from "@wix/bookings";
 import { submittedContact, notes } from "@wix/crm";
 
@@ -14,7 +14,7 @@ type Phase =
 
 type Slot = any;
 type Service = any;
-type StaffInfo = { name: string; imageUrl?: string };
+type StaffInfo = { name: string; imageUrl?: string; description?: string };
 
 type Props = {
   initialService?: Service | null;
@@ -22,7 +22,14 @@ type Props = {
   staffById?: Record<string, StaffInfo>;
 };
 
-const SLOTS_VISIBLE = 6;
+const dayKey = (iso: string) => {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+};
+const dateHeaderFmt = (d: Date) =>
+  d.toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric" });
+const timeOnlyFmt = (d: Date) =>
+  d.toLocaleString(undefined, { hour: "numeric", minute: "2-digit" });
 
 function Avatar({ name, imageUrl, size = 22 }: { name?: string; imageUrl?: string; size?: number }) {
   const initials = (name ?? "")
@@ -58,13 +65,44 @@ export default function BookEngineer({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [description, setDescription] = useState("");
-  const [showAll, setShowAll] = useState(false);
   const [filterStaffId, setFilterStaffId] = useState<string | null>(null);
+
+  // Day-row pager. Visible window = container clientWidth (3 days on
+  // desktop). Each prev/next click scrolls by exactly that width, so the
+  // user jumps in 3-day intervals. Mobile uses native scroll/swipe.
+  const daysRef = useRef<HTMLDivElement | null>(null);
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
+
+  const updateNavState = () => {
+    const el = daysRef.current;
+    if (!el) { setCanPrev(false); setCanNext(false); return; }
+    setCanPrev(el.scrollLeft > 4);
+    setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  };
+
+  const scrollPage = (dir: 1 | -1) => {
+    const el = daysRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * el.clientWidth, behavior: "smooth" });
+  };
+
+  // Switching the engineer filter invalidates any previously selected slot
+  // — it may belong to a staff member the new filter excludes, or just be
+  // misleading ("you picked X with Alice, now we're showing Bob's slots").
+  // Reset the selection so the user re-picks within the new filter.
+  const pickFilter = (id: string | null) => {
+    setFilterStaffId(id);
+    setSelectedSlot(null);
+  };
 
   const service = initialService;
   const slots = initialSlots;
 
   // Staff that actually appear in any slot's availableResources.
+  // Sorted alphabetically by first name so the chip order is stable and
+  // doesn't shift based on whichever staff member happens to have the
+  // earliest available slot in the current window.
   const availableStaff = useMemo(() => {
     const ids = new Set<string>();
     for (const s of slots) {
@@ -74,10 +112,11 @@ export default function BookEngineer({
         if (id) ids.add(id);
       }
     }
-    return Array.from(ids).map((id) => ({
-      id,
-      info: staffById[id] ?? { name: "Engineer" },
-    }));
+    return Array.from(ids)
+      .map((id) => ({ id, info: staffById[id] ?? { name: "Engineer" } }))
+      .sort((a, b) =>
+        a.info.name.localeCompare(b.info.name, undefined, { sensitivity: "base" }),
+      );
   }, [slots, staffById]);
 
   const visibleSlots = useMemo(() => {
@@ -88,13 +127,43 @@ export default function BookEngineer({
     });
   }, [slots, filterStaffId]);
 
+  // Group slots by calendar day so the UI can render a date header once,
+  // then a row of compact time-only pills underneath — same pattern as
+  // Calendly/Acuity. Avoids repeating "Mon, May 18" on every slot.
+  const slotsByDay = useMemo(() => {
+    const groups = new Map<string, { date: Date; slots: Slot[] }>();
+    for (const s of visibleSlots) {
+      const iso = s?.localStartDate ?? s?.startDate;
+      if (!iso) continue;
+      const key = dayKey(iso);
+      let bucket = groups.get(key);
+      if (!bucket) {
+        bucket = { date: new Date(iso), slots: [] };
+        groups.set(key, bucket);
+      }
+      bucket.slots.push(s);
+    }
+    return [...groups.values()].sort((a, b) => a.date.getTime() - b.date.getTime());
+  }, [visibleSlots]);
+
+  useEffect(() => {
+    const el = daysRef.current;
+    if (!el) return;
+    updateNavState();
+    el.addEventListener("scroll", updateNavState, { passive: true });
+    window.addEventListener("resize", updateNavState);
+    return () => {
+      el.removeEventListener("scroll", updateNavState);
+      window.removeEventListener("resize", updateNavState);
+    };
+  }, [slotsByDay.length]);
+
   const reset = () => {
     setSelectedSlot(null);
     setName("");
     setEmail("");
     setDescription("");
     setError(null);
-    setShowAll(false);
     setFilterStaffId(null);
     setPhase(hasData ? "pick" : "request");
   };
@@ -161,7 +230,12 @@ export default function BookEngineer({
       const resource = pickResource(selectedSlot);
       const resourceId = resource?._id ?? resource?.id;
       const trimmedDescription = description.trim();
-      await bookings.createBooking({
+      // Appointment bookings always come back as `CREATED` for anonymous
+      // visitors — `skipBusinessConfirmation` requires a scope anon visitors
+      // don't have, so the SDK silently drops it. Without confirmation no
+      // session is minted, no email goes out. We then POST to a server route
+      // that confirms with elevated permissions.
+      const createRes: any = await bookings.createBooking({
         bookedEntity: {
           slot: {
             serviceId: service._id,
@@ -182,13 +256,76 @@ export default function BookEngineer({
           email,
         },
         totalParticipants: 1,
-        ...(trimmedDescription && {
-          participantNotification: {
-            notifyParticipants: true,
-            message: `What I want to build:\n${trimmedDescription}`,
-          },
-        }),
       } as any);
+
+      const createdBooking = createRes?.booking ?? createRes;
+      const bookingId = createdBooking?._id ?? createdBooking?.id;
+      const revision = createdBooking?.revision;
+      if (bookingId && revision) {
+        const confirmRes = await fetch("/api/bookings/confirm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            bookingId,
+            revision,
+            email,
+            message: trimmedDescription
+              ? `What I want to build:\n${trimmedDescription}`
+              : undefined,
+          }),
+        });
+        if (!confirmRes.ok) {
+          const body = await confirmRes.json().catch(() => ({}));
+          throw new Error(body?.error ?? "Couldn't confirm the booking.");
+        }
+      }
+
+      // "Any engineer" path: the slot was booked with the first available
+      // staff (via pickResource). Drop a CRM note on the customer's contact
+      // listing the OTHER staff who were also free at this time, so the
+      // booked engineer (and anyone reviewing the contact) can re-route
+      // internally if a different engineer is a better fit.
+      if (filterStaffId === null) {
+        try {
+          const allResources =
+            (selectedSlot?.availableResources?.[0]?.resources ?? []) as any[];
+          const otherNames = allResources
+            .filter((r) => (r?._id ?? r?.id) !== resourceId)
+            .map((r) => {
+              const id = r?._id ?? r?.id;
+              return staffById[id]?.name ?? r?.name ?? "Engineer";
+            })
+            .filter(Boolean);
+
+          if (otherNames.length > 0) {
+            const contactRes: any = await submittedContact.appendOrCreateContact({
+              info: {
+                name: { first: firstName || "Guest", last: lastName },
+                emails: { items: [{ email, tag: "MAIN" as any }] },
+              },
+            } as any);
+            const contactId = contactRes?.contactId;
+            if (contactId) {
+              const bookedName =
+                (resourceId && staffById[resourceId]?.name) || "the assigned engineer";
+              const noteText = [
+                `"Any engineer" booking via wix-headless.dev.`,
+                `Assigned: ${bookedName}.`,
+                `Also free at this slot: ${otherNames.join(", ")}.`,
+                `Team: re-route internally if a different engineer fits better.`,
+              ].join("\n\n");
+              await notes.createNote({
+                contactId,
+                text: noteText,
+                type: "MEETING_SUMMARY",
+              } as any);
+            }
+          }
+        } catch {
+          // Note is supplementary — don't fail the booking if this errors.
+        }
+      }
+
       setPhase("done");
     } catch (e: any) {
       setPhase("error");
@@ -259,7 +396,7 @@ export default function BookEngineer({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="A storefront for handmade ceramics, a booking site for a yoga studio…"
-            rows={3}
+            rows={5}
             maxLength={300}
             disabled={phase === "request-submitting"}
           />
@@ -281,8 +418,10 @@ export default function BookEngineer({
   if (phase === "request-done") {
     return (
       <div className="book-inline__done">
-        <p>
-          Got it. We'll reach out to <strong>{email}</strong> with times that work.
+        <span className="book-inline__done-cap">Request received</span>
+        <h3 className="book-inline__done-title">We'll be in touch.</h3>
+        <p className="book-inline__done-sub">
+          Heading to <strong>{email}</strong> with times that work.
         </p>
       </div>
     );
@@ -292,14 +431,14 @@ export default function BookEngineer({
     const who = slotStaff(selectedSlot);
     return (
       <div className="book-inline__done">
-        <p>
-          Booked <strong>{formatSlot(selectedSlot)}</strong>
-          {who && <> with <strong>{who.info.name}</strong></>}.
-          We'll send a confirmation to <strong>{email}</strong>.
+        <span className="book-inline__done-cap">Confirmed</span>
+        <h3 className="book-inline__done-title">
+          {formatSlot(selectedSlot)}
+          {who && <> · {who.info.name}</>}
+        </h3>
+        <p className="book-inline__done-sub">
+          An invitation will be sent to <strong>{email}</strong>.
         </p>
-        <button type="button" className="book-inline__again" onClick={reset}>
-          Book another time
-        </button>
       </div>
     );
   }
@@ -309,15 +448,13 @@ export default function BookEngineer({
     return (
       <form className="book-inline book-inline--form" onSubmit={submit}>
         <p className="book-inline__lede">
-          Booking <strong>{formatSlot(selectedSlot)}</strong>
+          <span className="book-inline__lede-line">
+            Booking <strong>{formatSlot(selectedSlot)}</strong>
+          </span>
           {who && (
-            <>
-              {" "}with{" "}
-              <span className="book-inline__who-inline">
-                <Avatar name={who.info.name} imageUrl={who.info.imageUrl} size={20} />
-                <strong>{who.info.name}</strong>
-              </span>
-            </>
+            <span className="book-inline__lede-line">
+              With <strong>{who.info.name}</strong>
+            </span>
           )}
         </p>
         <div className="book-inline__row">
@@ -349,7 +486,7 @@ export default function BookEngineer({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="A storefront for handmade ceramics, a booking site for a yoga studio…"
-            rows={3}
+            rows={5}
             maxLength={400}
             disabled={phase === "submitting"}
           />
@@ -378,77 +515,113 @@ export default function BookEngineer({
     );
   }
 
-  const slotsToRender = showAll ? visibleSlots : visibleSlots.slice(0, SLOTS_VISIBLE);
   return (
     <div className="book-inline">
-      {availableStaff.length > 1 && (
-        <div className="book-filter" role="tablist" aria-label="Filter by engineer">
-          <button
-            type="button"
-            className={`book-filter__chip ${filterStaffId === null ? "is-on" : ""}`}
-            onClick={() => { setFilterStaffId(null); setShowAll(false); }}
-            role="tab"
-            aria-selected={filterStaffId === null}
-          >
-            Any engineer
-          </button>
-          {availableStaff.map(({ id, info }) => (
-            <button
-              key={id}
-              type="button"
-              className={`book-filter__chip ${filterStaffId === id ? "is-on" : ""}`}
-              onClick={() => { setFilterStaffId(id); setShowAll(false); }}
-              role="tab"
-              aria-selected={filterStaffId === id}
-            >
-              <Avatar name={info.name} imageUrl={info.imageUrl} size={20} />
-              <span>{info.name}</span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {slotsToRender.length === 0 ? (
+      {slotsByDay.length === 0 ? (
         <p className="book-inline__empty">
           No upcoming slots for that engineer in the next two weeks.
         </p>
       ) : (
-        <>
-          <ul className="book-slots">
-            {slotsToRender.map((slot, i) => {
-              const who = slotStaff(slot);
-              return (
-                <li key={i}>
+        <div className="book-days-wrap">
+          <div className="book-days__top">
+            {availableStaff.length > 1 && (
+              <div className="book-filter" role="tablist" aria-label="Filter by engineer">
+                <button
+                  type="button"
+                  className={`book-filter__chip ${filterStaffId === null ? "is-on" : ""}`}
+                  onClick={() => pickFilter(null)}
+                  role="tab"
+                  aria-selected={filterStaffId === null}
+                >
+                  <span className="book-filter__chip-text">
+                    <span className="book-filter__chip-name">Any Engineer</span>
+                  </span>
+                </button>
+                {availableStaff.map(({ id, info }) => (
                   <button
+                    key={id}
                     type="button"
-                    className="book-slots__slot"
-                    onClick={() => {
-                      setSelectedSlot(slot);
-                      setPhase("form");
-                    }}
+                    className={`book-filter__chip ${filterStaffId === id ? "is-on" : ""}`}
+                    onClick={() => pickFilter(id)}
+                    role="tab"
+                    aria-selected={filterStaffId === id}
                   >
-                    <span className="book-slots__time">{formatSlot(slot)}</span>
-                    {who && (
-                      <span className="book-slots__who">
-                        <Avatar name={who.info.name} imageUrl={who.info.imageUrl} size={18} />
-                        <span>with {who.info.name}</span>
-                      </span>
-                    )}
+                    <Avatar name={info.name} imageUrl={info.imageUrl} size={28} />
+                    <span className="book-filter__chip-text">
+                      <span className="book-filter__chip-name">{info.name}</span>
+                      {info.description && (
+                        <span className="book-filter__chip-role">{info.description}</span>
+                      )}
+                    </span>
                   </button>
-                </li>
-              );
-            })}
-          </ul>
-          {!showAll && visibleSlots.length > SLOTS_VISIBLE && (
-            <button
-              type="button"
-              className="book-inline__more"
-              onClick={() => setShowAll(true)}
-            >
-              Show {visibleSlots.length - SLOTS_VISIBLE} more
-            </button>
-          )}
-        </>
+                ))}
+              </div>
+            )}
+            <div className="book-days__nav-row">
+              <button
+                type="button"
+                className="book-days__nav"
+                onClick={() => scrollPage(-1)}
+                disabled={!canPrev}
+                aria-label="Previous days"
+              >
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M10 12L6 8L10 4" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="book-days__nav"
+                onClick={() => scrollPage(1)}
+                disabled={!canNext}
+                aria-label="Next days"
+              >
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M6 4L10 8L6 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div className="book-days" ref={daysRef}>
+            {slotsByDay.map(({ date, slots: daySlots }) => (
+            <div className="book-day" key={date.toISOString()}>
+              <h3 className="book-day__header">{dateHeaderFmt(date)}</h3>
+              <ul className="book-day__slots">
+                {daySlots.slice(0, 3).map((slot, i) => {
+                  const start = new Date(slot.localStartDate ?? slot.startDate);
+                  const who = slotStaff(slot);
+                  return (
+                    <li key={i}>
+                      <button
+                        type="button"
+                        className={`book-day__slot ${selectedSlot === slot ? "is-selected" : ""}`}
+                        onClick={() => setSelectedSlot(slot)}
+                        aria-pressed={selectedSlot === slot}
+                        aria-label={who ? `${timeOnlyFmt(start)} with ${who.info.name}` : timeOnlyFmt(start)}
+                      >
+                        <span>{timeOnlyFmt(start)}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+          </div>
+        </div>
+      )}
+
+      {slotsByDay.length > 0 && (
+        <div className="book-inline__actions book-inline__actions--end">
+          <button
+            type="button"
+            className="book-inline__submit"
+            onClick={() => setPhase("form")}
+            disabled={!selectedSlot}
+          >
+            Next
+          </button>
+        </div>
       )}
     </div>
   );

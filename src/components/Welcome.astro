@@ -52,8 +52,6 @@ try {
       staffMembers.queryStaffMembers().limit(25).find().catch(() => ({ items: [] })),
     ]);
 
-    console.log({from, to, slotsRes})
-
     bookingSlots = slotsRes.timeSlots ?? [];
     const wixImageToUrl = (img: any): string | undefined => {
       if (!img) return undefined;

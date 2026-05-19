@@ -4,7 +4,7 @@ import XRayLayer from "../components/xray/Layer.tsx";
 
 const SITE_URL = "https://www.wix-headless.dev";
 const {
-	title = "Wix Headless | Build anything. Wix runs the business behind it.",
+	title = "Build a Real Business with AI | Wix Headless",
 	description = "Headless commerce, bookings, CMS, identity — agent-wired, prompt-deep. Drop one prompt into any coding agent and ship a real Wix site.",
 	ogTitle = "Build anything. Wix runs the business behind it.",
 	ogDescription = "Headless commerce, bookings, CMS, identity — agent-wired, prompt-deep.",
@@ -26,7 +26,7 @@ const absoluteImage = image.startsWith("http") ? image : SITE_URL + image;
 		<link rel="canonical" href={canonical} />
 		<title>{title}</title>
 		<meta name="description" content={description} />
-		<meta property="og:site_name" content="wix-headless.dev" />
+		<meta property="og:site_name" content="Wix Headless" />
 		<meta property="og:title" content={ogTitle} />
 		<meta property="og:description" content={ogDescription} />
 		<meta property="og:type" content="website" />
@@ -42,6 +42,17 @@ const absoluteImage = image.startsWith("http") ? image : SITE_URL + image;
 		<meta name="twitter:image" content={absoluteImage} />
 		<meta name="twitter:image:alt" content={imageAlt} />
 		<meta name="theme-color" content="#0a0a0a" />
+		<script type="application/ld+json" set:html={JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "WebSite",
+			name: "Wix Headless",
+			url: SITE_URL + "/",
+			publisher: {
+				"@type": "Organization",
+				name: "Wix",
+				url: "https://www.wix.com/"
+			}
+		})} />
 		<link rel="preconnect" href="https://rsms.me/" />
 		<link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
 	</head>

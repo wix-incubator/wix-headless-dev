@@ -32,6 +32,7 @@ try {
     const isoLocal = (d: Date) =>
       `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     const from = new Date();
+    from.setHours(from.getHours() + 48);
     const to = new Date();
     to.setDate(from.getDate() + 14);
     const [slotsRes, staffRes] = await Promise.all([

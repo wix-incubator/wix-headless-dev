@@ -1,6 +1,10 @@
 import type { APIRoute } from "astro";
+import { captureServerEvent } from "../lib/posthog-server";
 
-const CACHE_HEADER = "public, s-maxage=600, stale-while-revalidate=86400";
+const CACHE_DEFAULT = "public, s-maxage=600, stale-while-revalidate=86400";
+// Funnel path: cached bytes ship instantly, revalidation in the background
+// runs the handler so PostHog gets an event on every hit.
+const CACHE_FUNNEL = "public, max-age=0, stale-while-revalidate=600";
 const HOST = "https://wix-headless.dev";
 const UPSTREAM = "https://dev.wix.com/skills/wix-headless";
 
@@ -26,11 +30,24 @@ The skill is hosted at <${UPSTREAM}/>. Start with [\`SKILL.md\`](${UPSTREAM}/SKI
 
 export const prerender = false;
 
-export const GET: APIRoute = () =>
-  new Response(BODY, {
+export const GET: APIRoute = ({ url, cookies, request }) => {
+  const isFunnel = url.searchParams.get("funnel") === "1";
+  if (isFunnel) {
+    const distinctId = cookies.get("bSession")?.value || "anonymous";
+    void captureServerEvent({
+      event: "funnel_skill_fetched",
+      distinctId,
+      properties: {
+        route: "skill.md",
+        ua: request.headers.get("user-agent") || undefined,
+      },
+    });
+  }
+  return new Response(BODY, {
     status: 200,
     headers: {
       "Content-Type": "text/markdown; charset=utf-8",
-      "Cache-Control": CACHE_HEADER,
+      "Cache-Control": isFunnel ? CACHE_FUNNEL : CACHE_DEFAULT,
     },
   });
+};

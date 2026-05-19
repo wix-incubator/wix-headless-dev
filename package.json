@@ -25,6 +25,7 @@
     "@wix/sdk": "^1.21.5",
     "@wix/site": "^1.61.0",
     "astro": "^5.8.0",
+    "posthog-js": "^1.374.2",
     "typescript": "^5.8.3"
   },
   "devDependencies": {

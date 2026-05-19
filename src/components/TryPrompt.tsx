@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { analytics } from "@wix/site";
 
 const INTENTS_DESKTOP = [
@@ -89,12 +89,15 @@ export default function TryPrompt() {
 
   const placeholder = INTENTS[intentIndex];
 
-  const copyText = useMemo(() => {
-    const effectiveIntent = userText.trim() || placeholder;
-    return `build ${effectiveIntent} using ${HOST}${SKILL_PATH}`;
-  }, [userText, placeholder]);
-
   const handleCopy = async () => {
+    const funnelActive =
+      typeof window !== "undefined" &&
+      window.sessionStorage.getItem("funnel") === "1";
+    const effectiveIntent = userText.trim() || placeholder;
+    const skillUrl = funnelActive
+      ? `${HOST}${SKILL_PATH}?funnel=1`
+      : `${HOST}${SKILL_PATH}`;
+    const copyText = `build ${effectiveIntent} using ${skillUrl}`;
     try {
       await navigator.clipboard.writeText(copyText);
     } catch {
@@ -108,6 +111,12 @@ export default function TryPrompt() {
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
     analytics.buttonClicked();
+    if (funnelActive) {
+      (window as unknown as { posthog?: { capture?: Function } }).posthog?.capture?.(
+        "funnel_copy_clicked",
+        { intent: effectiveIntent },
+      );
+    }
   };
 
   const focusInput = () => inputRef.current?.focus();

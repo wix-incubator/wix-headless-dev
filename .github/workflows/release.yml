@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Wix login
+        run: npx wix login --api-key "$WIX_CLI_TOKEN"
+        env:
+          WIX_CLI_TOKEN: ${{ secrets.WIX_CLI_TOKEN }}
+
+      - name: Release
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          subject="$(printf '%s' "$COMMIT_MSG" | head -n1)"
+          npx wix release -c "$subject"

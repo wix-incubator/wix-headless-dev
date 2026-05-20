@@ -1,0 +1,70 @@
+---
+import { posts } from "@wix/blog";
+
+let recent: any[] = [];
+try {
+  const res = await posts.listPosts({
+    fieldsets: ["URL"],
+    paging: { limit: 3 },
+  });
+  recent = res.posts ?? [];
+} catch {
+  recent = [];
+}
+
+const dateFmt = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
+---
+
+<section class="bento__buildlog" aria-labelledby="buildlog-title">
+  <header class="buildlog__header">
+    <span class="kicker">field notes</span>
+    <h2 id="buildlog-title" class="buildlog__title">The build log.</h2>
+    <p class="buildlog__lede">
+      Notes on what we made, what we broke, what surprised us. Every post is itself a Wix Blogs entry, fetched server-side from the same backend that runs this page.
+    </p>
+  </header>
+
+  <div class="buildlog__content block" data-xray="blog-feed">
+    {recent.length === 0 ? (
+      <div class="buildlog__empty">
+        <p>The first post is on its way.</p>
+      </div>
+    ) : (
+      <ol class="buildlog">
+        {recent.map((p, i) => {
+          const date = p.firstPublishedDate ? dateFmt.format(new Date(p.firstPublishedDate)) : "";
+          return (
+            <li class="buildlog__item">
+              <a class="buildlog__link" href={`/blog/${p.slug}`}>
+                <span class="buildlog__num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+                <div class="buildlog__body">
+                  <div class="buildlog__meta">
+                    {i === 0 && <span class="buildlog__new">new</span>}
+                    {date && <span>{date}</span>}
+                    {p.minutesToRead != null && <span>{p.minutesToRead} min read</span>}
+                  </div>
+                  <h3 class="buildlog__post-title">{p.title}</h3>
+                  {p.excerpt && <p class="buildlog__excerpt">{p.excerpt}</p>}
+                </div>
+                <span class="buildlog__arrow" aria-hidden="true">→</span>
+              </a>
+            </li>
+          );
+        })}
+        <li class="buildlog__item buildlog__item--more">
+          <a class="buildlog__link" href="/blog">
+            <span class="buildlog__num" aria-hidden="true">··</span>
+            <div class="buildlog__body">
+              <h3 class="buildlog__post-title buildlog__more-title">Read all posts</h3>
+            </div>
+            <span class="buildlog__arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+      </ol>
+    )}
+  </div>
+</section>

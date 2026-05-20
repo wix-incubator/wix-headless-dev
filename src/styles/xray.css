@@ -1,0 +1,300 @@
+/* ===== X-Ray toggle chip (lives in the topbar) ===== */
+.xray-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px 6px 9px;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--fg-muted);
+  font-family: var(--mono);
+  font-size: var(--fs-base);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.xray-toggle:hover {
+  color: var(--fg);
+  border-color: var(--fg-faint);
+}
+.xray-toggle__glyph {
+  color: var(--fg-faint);
+  font-size: var(--fs-xs);
+  transition: color 0.15s ease;
+}
+.xray-toggle:hover .xray-toggle__glyph { color: var(--fg-muted); }
+.xray-toggle__label { line-height: 1; }
+.xray-toggle__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--fg-faint);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.xray-toggle.is-on {
+  color: var(--accent);
+  border-color: rgba(250, 255, 0, 0.45);
+  background: rgba(250, 255, 0, 0.06);
+}
+.xray-toggle.is-on .xray-toggle__glyph { color: var(--accent); }
+.xray-toggle.is-on .xray-toggle__dot {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(250, 255, 0, 0.18), 0 0 10px rgba(250, 255, 0, 0.55);
+}
+
+/* ===== Body scanline overlay when X-Ray is on ===== */
+body.xray-on::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent 3px,
+    rgba(250, 255, 0, 0.018) 3px,
+    rgba(250, 255, 0, 0.018) 4px
+  );
+}
+
+/* ===== Inspectable element treatment ===== */
+body.xray-on [data-xray] {
+  position: relative;
+  cursor: help;
+  outline: 1px dashed rgba(250, 255, 0, 0.42);
+  outline-offset: 6px;
+  border-radius: 2px;
+  transition: outline-color 0.15s ease, background 0.15s ease;
+}
+body.xray-on [data-xray]:hover {
+  outline-color: var(--accent);
+  outline-style: solid;
+  background: rgba(250, 255, 0, 0.04);
+}
+body.xray-on [data-xray]::after {
+  content: attr(data-xray-label);
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 8px;
+  z-index: 10;
+  padding: 4px 12px;
+  background: var(--bg);
+  color: var(--accent);
+  border: 1px solid rgba(250, 255, 0, 0.45);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 0 0 3px var(--bg), 0 0 14px rgba(250, 255, 0, 0.25);
+}
+
+body.xray-on [data-xray="blog-feed"]::after {
+  top: -24px;
+}
+
+body.xray-on [data-xray="wix-cli"]::after {
+  top: -24px;
+}
+
+/* ===== Drawer (right side, slides in) ===== */
+.xray-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 80;
+}
+.xray-drawer-scrim.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.xray-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(420px, 92vw);
+  background: var(--bg-card);
+  border-left: 1px solid var(--border-strong);
+  box-shadow: -24px 0 60px -20px rgba(0, 0, 0, 0.65);
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0.2, 1);
+  z-index: 90;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.xray-drawer.is-open {
+  transform: translateX(0);
+}
+.xray-drawer__inner {
+  padding: 22px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.xray-drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.xray-drawer__cap {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(250, 255, 0, 0.4);
+  background: rgba(250, 255, 0, 0.06);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.xray-drawer__close {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  color: var(--fg-muted);
+  /* one-off: × glyph in the 28px close button. */
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.xray-drawer__close:hover {
+  color: var(--fg);
+  border-color: var(--fg-faint);
+}
+.xray-drawer__title {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+.xray-drawer__summary {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: 1.55;
+  color: var(--fg-muted);
+}
+.xray-drawer__code {
+  background: var(--bg-card-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.xray-drawer__codepath {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  color: var(--fg-faint);
+  letter-spacing: 0.02em;
+}
+.xray-drawer__code pre {
+  margin: 0;
+  padding: 14px 16px;
+  font-family: var(--mono);
+  font-size: var(--fs-base);
+  line-height: 1.55;
+  color: var(--fg);
+  overflow-x: auto;
+}
+.xray-drawer__code code {
+  font-family: inherit;
+  font-size: inherit;
+  white-space: pre;
+}
+.xray-drawer__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+.xray-drawer__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--fg-muted);
+  font-family: var(--mono);
+  font-size: var(--fs-base);
+  text-decoration: none;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.xray-drawer__btn:hover {
+  color: var(--fg);
+  border-color: var(--fg-faint);
+}
+.xray-drawer__btn--primary {
+  color: var(--accent);
+  border-color: rgba(250, 255, 0, 0.45);
+  background: rgba(250, 255, 0, 0.06);
+}
+.xray-drawer__btn--primary:hover {
+  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.xray-drawer__btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+@media (max-width: 600px) {
+  body.xray-on [data-xray] {
+    outline-offset: 4px;
+  }
+
+  body.xray-on [data-xray]::after {
+    left: 0;
+    right: auto;
+    padding: 1px 6px;
+  }
+
+  .xray-toggle {
+    padding: 6px 10px;
+  }
+  .xray-toggle__label {
+    display: none;
+  }
+
+  .xray-drawer {
+    width: 100%;
+  }
+
+  body.xray-on [data-xray="blog-feed"]::after {
+    bottom: -24px;
+    top: auto;
+    right: 0;
+    left: auto;
+  }
+  
+  body.xray-on [data-xray="wix-cli"]::after {
+    right: 0;
+    left: auto;
+  }
+
+  .xray-drawer__inner {
+    padding: 18px 18px 28px;
+  }
+}

@@ -1,0 +1,165 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Topbar from "../../components/Topbar.astro";
+import Footer from "../../components/Footer.astro";
+import PostBody from "../../components/blog/PostBody.tsx";
+import LikeButton from "../../components/blog/LikeButton.tsx";
+import ShareButton from "../../components/blog/ShareButton.tsx";
+import { posts } from "@wix/blog";
+import { members } from "@wix/members";
+import "../../styles/welcome.css";
+import "../../styles/blog.css";
+
+const { slug } = Astro.params;
+
+let post: posts.Post | null = null;
+let postMetrics: posts.Metrics | null = null;
+let fetchError: string | null = null;
+let author: members.Member | null = null;
+
+if (slug) {
+  try {
+    const res = await posts.getPostBySlug(slug, {
+      fieldsets: ["URL", "METRICS", "RICH_CONTENT", "CONTENT_TEXT"],
+    });
+
+    post = res.post ?? null;
+    const metricsRes = await posts.getPostMetrics(res.post?._id!);
+
+    postMetrics = metricsRes.metrics ?? null;
+  } catch (err) {
+    fetchError = err instanceof Error ? err.message : "Failed to load post.";
+  }
+}
+
+if (!post && !fetchError) {
+  return new Response("Post not found", { status: 404 });
+}
+
+if (post?.memberId) {
+  try {
+    author = await members.getMember(post.memberId);
+  } catch {
+    // member may be private, deleted, or otherwise unavailable — render without
+  }
+}
+
+const authorName = author?.profile?.nickname?.trim() || null;
+const authorTitle = author?.profile?.title?.trim() || null;
+const authorPhoto = author?.profile?.photo?.url || null;
+const authorInitial = (authorName || post?.title || "·").charAt(0);
+
+const dateFmt = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
+const publishedDate = post?.firstPublishedDate
+  ? dateFmt.format(new Date(post.firstPublishedDate))
+  : "";
+
+const heroUrl = post?.media?.embedMedia?.thumbnail?.url ?? null;
+
+const canonicalUrl = `https://www.wix-headless.dev/blog/${post?.slug ?? slug}`;
+const initialLikes = postMetrics?.likes ?? 0;
+const initialViews = postMetrics?.views ?? 0;
+---
+
+<Layout canonical={canonicalUrl}>
+  <div class="page">
+    <Topbar />
+
+    <main class="post-page">
+      {fetchError && (
+        <div class="post-page__error">
+          <p>Something went wrong loading this post.</p>
+          <code>{fetchError}</code>
+          <a class="post-page__back" href="/blog">← Back to all posts</a>
+        </div>
+      )}
+
+      {post && (
+        <article class="post">
+          <a class="post__back" href="/blog">← All posts</a>
+
+          <header class="post__header">
+            <div class="post__meta">
+              {publishedDate && <span class="post__date">{publishedDate}</span>}
+              {post.minutesToRead != null && (
+                <span class="post__read">{post.minutesToRead} min read</span>
+              )}
+              {initialViews > 0 && (
+                <span class="post__views">{initialViews.toLocaleString()} views</span>
+              )}
+            </div>
+            <h1 class="post__title">{post.title}</h1>
+            {post.excerpt && <p class="post__excerpt">{post.excerpt}</p>}
+
+            <div class="post__byline">
+              <div class="post__author">
+                <div class="post__author-stack">
+                  {authorPhoto ? (
+                    <>
+                      <img
+                        class="post__author-avatar post__author-avatar--photo"
+                        src={authorPhoto}
+                        alt={authorName ? `${authorName}'s profile photo` : ""}
+                        loading="lazy"
+                        referrerpolicy="no-referrer"
+                        onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"
+                      />
+                      <span class="post__author-avatar" aria-hidden="true" style="display:none">
+                        {authorInitial}
+                      </span>
+                    </>
+                  ) : (
+                    <span class="post__author-avatar" aria-hidden="true">
+                      {authorInitial}
+                    </span>
+                  )}
+                  <span class="post__author-avatar post__author-avatar--claude" aria-hidden="true">∗</span>
+                </div>
+                <div class="post__author-text">
+                  <span class="post__author-name">
+                    {authorName ?? "Wix Headless"}
+                    <span class="post__author-collab" aria-hidden="true"> × </span><span class="post__author-collab post__author-collab--accent">Claude Code</span>
+                  </span>
+                  <span class="post__author-handle">
+                    {authorTitle ?? "Posted via Wix Blogs"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {heroUrl && (
+            <figure class="post__hero">
+              <img src={heroUrl} alt="" />
+            </figure>
+          )}
+
+          <div class="post__body">
+            <PostBody content={post.richContent ?? null} fallback={post.excerpt ?? ""} client:idle />
+          </div>
+
+          <footer class="post__footer">
+            <div class="post__actions">
+              <LikeButton
+                postId={post._id!}
+                initialLikes={initialLikes}
+                client:load
+              />
+              <ShareButton
+                url={canonicalUrl}
+                title={post.title ?? ""}
+                client:load
+              />
+            </div>
+          </footer>
+        </article>
+      )}
+    </main>
+
+    <Footer />
+  </div>
+</Layout>

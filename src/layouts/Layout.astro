@@ -1,0 +1,63 @@
+---
+import "../styles/xray.css";
+import XRayLayer from "../components/xray/Layer.tsx";
+
+const SITE_URL = "https://www.wix-headless.dev";
+const {
+	title = "Build a Real Business with AI | Wix Headless",
+	description = "Headless commerce, bookings, CMS, identity — agent-wired, prompt-deep. Drop one prompt into any coding agent and ship a real Wix site.",
+	ogTitle = "Build anything. Wix runs the business behind it.",
+	ogDescription = "Headless commerce, bookings, CMS, identity — agent-wired, prompt-deep.",
+	image = "/og-image.png",
+	imageAlt = "Wix Headless — Build anything. Wix runs the business behind it.",
+	canonical = SITE_URL + "/",
+} = Astro.props;
+const absoluteImage = image.startsWith("http") ? image : SITE_URL + image;
+---
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/png" sizes="192x192" href="/icon.png" />
+		<link rel="apple-touch-icon" href="/icon.png" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="author" content="Wix.com, Inc." />
+		<link rel="canonical" href={canonical} />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<meta property="og:site_name" content="Wix Headless" />
+		<meta property="og:title" content={ogTitle} />
+		<meta property="og:description" content={ogDescription} />
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonical} />
+		<meta property="og:image" content={absoluteImage} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:image:alt" content={imageAlt} />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:site" content="@Wix" />
+		<meta name="twitter:title" content={ogTitle} />
+		<meta name="twitter:description" content={ogDescription} />
+		<meta name="twitter:image" content={absoluteImage} />
+		<meta name="twitter:image:alt" content={imageAlt} />
+		<meta name="theme-color" content="#0a0a0a" />
+		<script type="application/ld+json" set:html={JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "WebSite",
+			name: "Wix Headless",
+			url: SITE_URL + "/",
+			publisher: {
+				"@type": "Organization",
+				name: "Wix",
+				url: "https://www.wix.com/"
+			}
+		})} />
+		<link rel="preconnect" href="https://rsms.me/" />
+		<link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+	</head>
+	<body>
+		<slot />
+		<XRayLayer client:load />
+	</body>
+</html>

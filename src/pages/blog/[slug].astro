@@ -10,6 +10,14 @@ import { members } from "@wix/members";
 import "../../styles/welcome.css";
 import "../../styles/blog.css";
 
+export const wixMetadata = {
+  appDefId: "14bcded7-0066-7c35-14d7-466cb3f09103",
+  pageIdentifier: "wix.blog.sub_pages.post",
+  identifiers: {
+    slug: "BLOG.POST.SLUG",
+  },
+};
+
 const { slug } = Astro.params;
 
 let post: posts.Post | null = null;

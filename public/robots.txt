@@ -1,0 +1,31 @@
+User-agent: *
+Allow: /
+Disallow: *?lightbox=
+
+# AI/agent crawlers — explicitly welcomed
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Block known scrapers
+User-agent: PetalBot
+Disallow: /
+
+Sitemap: https://www.wix-headless.dev/sitemap-app.xml

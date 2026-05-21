@@ -1,0 +1,33 @@
+The agent-native entry point to Wix Managed Headless — drop one prompt into any coding agent and ship a real Wix site.
+
+## What this site is
+
+wix-headless.dev is a live Wix Headless site that advertises and serves the `wix-headless` skill. The skill it ships is the same skill it was built with.
+
+## For AI coding agents
+
+The fastest path to a Wix Headless site is:
+
+1. Fetch the skill tarball at `https://wix-headless.dev/skill` (proxy for `https://dev.wix.com/skills/wix-headless.tgz`).
+2. Unpack and follow `SKILL.md`.
+3. Run `npx wix release` to deploy.
+
+Nested markdown references inside the skill resolve via the `/[...path].md` proxy on this domain.
+
+## Key URLs
+
+- Homepage — https://wix-headless.dev/
+- Skill tarball — https://wix-headless.dev/skill
+- Blog — https://wix-headless.dev/blog
+- Sitemap — https://wix-headless.dev/sitemap-app.xml
+
+## Stack
+
+Astro 5 + React, Wix Astro adapter, deployed on the Wix-managed runtime via `wix release`.
+
+## More
+
+- Wix Headless docs — https://dev.wix.com/docs/go-headless
+- Wix SDK docs — https://dev.wix.com/docs/sdk
+- Source repo — https://github.com/wix-incubator/wix-headless-dev
+- Community Discord — https://discord.gg/n6TBrSnYTp

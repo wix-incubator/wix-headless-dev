@@ -1,4 +1,4 @@
-The agent-native entry point to Wix Managed Headless — drop one prompt into any coding agent and ship a real Wix site.
+The agent-native entry point to Wix Managed Headless — drop one prompt into any coding agent and ship a business, not a demo.
 
 ## What this site is
 

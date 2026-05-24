@@ -36,6 +36,19 @@ jobs:
           WIX_CLI_TOKEN: ${{ secrets.WIX_CLI_TOKEN }}
         run: npx wix login --api-key "$WIX_CLI_TOKEN"
 
+      - name: Debug — whoami + visible sites
+        env:
+          WIX_CLI_TOKEN: ${{ secrets.WIX_CLI_TOKEN }}
+        run: |
+          echo "=== wix whoami ==="
+          npx wix whoami || true
+          echo
+          echo "=== Sites visible to this API key ==="
+          curl -sS -X POST https://www.wixapis.com/site-list/v2/sites/query \
+            -H "Authorization: $WIX_CLI_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"query":{}}' | jq '.sites[]? | {id, displayName: .displayName, ownerEmail: .owner.email}'
+
       - name: Pull Wix env
         run: npx wix env pull
 

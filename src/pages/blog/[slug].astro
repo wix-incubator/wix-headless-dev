@@ -7,6 +7,9 @@ import LikeButton from "../../components/blog/LikeButton.tsx";
 import ShareButton from "../../components/blog/ShareButton.tsx";
 import { posts } from "@wix/blog";
 import { members } from "@wix/members";
+import { SEO } from "@wix/seo/components";
+import { loadSEOTagsServiceConfig } from "@wix/seo/services";
+import { seoTags } from "@wix/seo";
 import "../../styles/welcome.css";
 import "../../styles/blog.css";
 
@@ -24,14 +27,23 @@ let post: posts.Post | null = null;
 let postMetrics: posts.Metrics | null = null;
 let fetchError: string | null = null;
 let author: members.Member | null = null;
+let seoTagsServiceConfig: Awaited<ReturnType<typeof loadSEOTagsServiceConfig>> | null = null;
 
 if (slug) {
   try {
-    const res = await posts.getPostBySlug(slug, {
-      fieldsets: ["URL", "METRICS", "RICH_CONTENT", "CONTENT_TEXT"],
-    });
+    const [res, seoConfig] = await Promise.all([
+      posts.getPostBySlug(slug, {
+        fieldsets: ["URL", "METRICS", "RICH_CONTENT", "CONTENT_TEXT"],
+      }),
+      loadSEOTagsServiceConfig({
+        pageUrl: Astro.url.href,
+        itemType: seoTags.ItemType.BLOG_POST,
+        itemData: { slug },
+      }),
+    ]);
 
     post = res.post ?? null;
+    seoTagsServiceConfig = seoConfig;
     const metricsRes = await posts.getPostMetrics(res.post?._id!);
 
     postMetrics = metricsRes.metrics ?? null;
@@ -74,6 +86,9 @@ const initialViews = postMetrics?.views ?? 0;
 ---
 
 <Layout canonical={canonicalUrl}>
+  {seoTagsServiceConfig && (
+    <SEO.Tags seoTagsServiceConfig={seoTagsServiceConfig} slot="seo-tags" />
+  )}
   <div class="page">
     <Topbar />
 

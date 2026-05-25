@@ -17,6 +17,7 @@ const absoluteImage = image.startsWith("http") ? image : SITE_URL + image;
 <!doctype html>
 <html lang="en">
 	<head>
+		<slot name="seo-tags" />
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/png" sizes="192x192" href="/icon.png" />
@@ -55,7 +56,6 @@ const absoluteImage = image.startsWith("http") ? image : SITE_URL + image;
 		})} />
 		<link rel="preconnect" href="https://rsms.me/" />
 		<link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
-		<slot name="seo-tags" />
 	</head>
 	<body>
 		<slot />

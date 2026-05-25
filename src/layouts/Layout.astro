@@ -55,6 +55,7 @@ const absoluteImage = image.startsWith("http") ? image : SITE_URL + image;
 		})} />
 		<link rel="preconnect" href="https://rsms.me/" />
 		<link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+		<slot name="seo-tags" />
 	</head>
 	<body>
 		<slot />

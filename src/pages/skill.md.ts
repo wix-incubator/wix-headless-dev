@@ -23,9 +23,9 @@ wix skills add
 
 Then read \`SKILL.md\` from the installed skill and follow it end to end.
 
-## Browse without installing
+## Fallback: browse without installing
 
-The skill is hosted at <${UPSTREAM}/>. Start with [\`SKILL.md\`](${UPSTREAM}/SKILL.md) and follow its references (each \`<SKILL_ROOT>/<path>\` resolves to \`${UPSTREAM}/<path>\`).
+Only use this if the Wix CLI cannot be installed in the current environment. The skill is hosted at <${UPSTREAM}/>. Start with [\`SKILL.md\`](${UPSTREAM}/SKILL.md) and follow its references (each \`<SKILL_ROOT>/<path>\` resolves to \`${UPSTREAM}/<path>\`).
 `;
 
 export const prerender = false;

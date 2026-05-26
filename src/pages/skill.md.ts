@@ -9,7 +9,13 @@ const BODY = `# Wix Headless Skill
 
 ## Install
 
-From the root of your Wix project, run:
+If you don't have the Wix CLI installed yet, install it first:
+
+\`\`\`bash
+npm install -g @wix/cli
+\`\`\`
+
+Then from the root of your project, run:
 
 \`\`\`bash
 wix skills add

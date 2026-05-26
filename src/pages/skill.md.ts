@@ -1,7 +1,6 @@
 import type { APIRoute } from "astro";
 
 const CACHE_HEADER = "public, s-maxage=600, stale-while-revalidate=86400";
-const HOST = "https://wix-headless.dev";
 const UPSTREAM = "https://dev.wix.com/skills/wix-headless";
 
 const BODY = `# Wix Headless Skill
@@ -10,14 +9,13 @@ const BODY = `# Wix Headless Skill
 
 ## Install
 
-Extract the bundle into any directory you control. \`<SKILL_ROOT>\` below is a placeholder — substitute whatever path makes sense for your runtime.
+From the root of your Wix project, run:
 
 \`\`\`bash
-mkdir -p <SKILL_ROOT>
-curl -fsSL ${HOST}/skill.tgz | tar -xzf - -C <SKILL_ROOT> --strip-components=1
+wix skills add
 \`\`\`
 
-Then read \`<SKILL_ROOT>/SKILL.md\` and follow it end to end. Every \`<SKILL_ROOT>/...\` path inside that document resolves under the directory you chose.
+Then read \`SKILL.md\` from the installed skill and follow it end to end.
 
 ## Browse without installing
 

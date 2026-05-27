@@ -1,7 +1,6 @@
 import type { APIRoute } from "astro";
 
 const CACHE_HEADER = "public, s-maxage=600, stale-while-revalidate=86400";
-const HOST = "https://wix-headless.dev";
 const UPSTREAM = "https://dev.wix.com/skills/wix-headless";
 
 const BODY = `# Wix Headless Skill
@@ -10,18 +9,68 @@ const BODY = `# Wix Headless Skill
 
 ## Install
 
-Extract the bundle into any directory you control. \`<SKILL_ROOT>\` below is a placeholder — substitute whatever path makes sense for your runtime.
+Pick **one** way to invoke the CLI and stick with it for the whole flow — don't mix \`npx @wix/cli\` and bare \`wix\` calls.
+
+- **If the project already has \`@wix/cli\` as a local devDependency** (\`./node_modules/@wix/cli\` exists): use the local binary via \`npx wix …\` or \`./node_modules/.bin/wix …\`. Skip the install step below.
+- **Otherwise**, install the CLI globally (only if it's not already on PATH):
 
 \`\`\`bash
-mkdir -p <SKILL_ROOT>
-curl -fsSL ${HOST}/skill.tgz | tar -xzf - -C <SKILL_ROOT> --strip-components=1
+wix --version || npm install -g @wix/cli@latest
 \`\`\`
 
-Then read \`<SKILL_ROOT>/SKILL.md\` and follow it end to end. Every \`<SKILL_ROOT>/...\` path inside that document resolves under the directory you chose.
+Below, \`wix\` means whichever form you chose above.
 
-## Browse without installing
+Check if you are logged in:
 
-The skill is hosted at <${UPSTREAM}/>. Start with [\`SKILL.md\`](${UPSTREAM}/SKILL.md) and follow its references (each \`<SKILL_ROOT>/<path>\` resolves to \`${UPSTREAM}/<path>\`).
+\`\`\`bash
+wix whoami
+\`\`\`
+
+If not logged in, run \`wix login\` **as a background process** so you can stream its stdout while it waits for the user. Watch for an \`awaiting_user\` JSON event:
+
+\`\`\`json
+{"event":"awaiting_user","userCode":"…","verificationUri":"…"}
+\`\`\`
+
+Surface the \`verificationUri\` and \`userCode\` to the user in plain prose. Then poll \`wix whoami\` every few seconds until it prints an email — that's the signal login completed. Don't proceed until then.
+
+If \`wix.config.json\` already exists in the current directory, skip to "Install the skills" below — the project is already set up.
+
+Otherwise, create a new Wix Headless project. \`<business-name>\` is the human brand name (spaces allowed, e.g. \`Acme Bakery\`). \`<project-name>\` is a 3-20 char slug — lowercase letters and digits only, no hyphens (e.g. \`acmebakery\`, not \`acme-bakery\`):
+
+\`\`\`bash
+npm create @wix/new@latest headless -- \\
+  --business-name "<business-name>" \\
+  --project-name "<project-name>" \\
+  --site-template blank \\
+  --no-publish
+\`\`\`
+
+The scaffold creates a \`./<project-name>/\` directory and installs npm dependencies into it. \`cd\` in before the next step:
+
+\`\`\`bash
+cd <project-name>
+\`\`\`
+
+## Install the skills
+
+From the project root (the directory containing \`wix.config.json\`):
+
+\`\`\`bash
+wix skills add
+\`\`\`
+
+This installs the Wix skills into \`.agents/skills/\` (the universal location; the CLI also syncs them into any per-agent directory it detects). Re-running overwrites in place with no prompt — and may add new skills if the registry has grown — so only re-run if you want that.
+
+Then read the entry-point skill and follow it end to end:
+
+\`\`\`
+.agents/skills/wix-headless/SKILL.md
+\`\`\`
+
+## Fallback: browse without installing
+
+Only use this if the Wix CLI cannot be installed in the current environment. The skill is hosted at <${UPSTREAM}/>. Start with [\`SKILL.md\`](${UPSTREAM}/SKILL.md) and follow its references (each \`<SKILL_ROOT>/<path>\` resolves to \`${UPSTREAM}/<path>\`).
 `;
 
 export const prerender = false;

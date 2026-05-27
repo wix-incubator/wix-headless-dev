@@ -9,13 +9,38 @@ const BODY = `# Wix Headless Skill
 
 ## Install
 
-If you don't have the Wix CLI installed yet, install it first:
+Install or update the Wix CLI to the latest version:
 
 \`\`\`bash
-npm install -g @wix/cli
+npm install -g @wix/cli@latest
 \`\`\`
 
-Then from the root of your project, run:
+Check if you are logged in to Wix:
+
+\`\`\`bash
+npx @wix/cli whoami
+\`\`\`
+
+If not logged in, run the following **in background** (do not run it in the terminal directly):
+
+\`\`\`bash
+npx @wix/cli login
+\`\`\`
+
+Read the task output file and wait for the \`awaiting_user\` JSON event: \`{"event":"awaiting_user","userCode":"…","verificationUri":"…"}\`. Surface the URL and code to the user in plain prose and wait for them to complete the browser login before continuing.
+
+If there is no \`wix.config.json\` in the current directory, create a new Wix Headless project first. Replace \`<project-name>\` with a 3-20 char slug (lowercase letters and digits only, no hyphens) and \`<business-name>\` with the brand name:
+
+\`\`\`bash
+npm create @wix/new@latest headless -- \\
+  --business-name "<business-name>" \\
+  --project-name "<project-name>" \\
+  --site-template blank \\
+  --no-publish \\
+  --skip-install
+\`\`\`
+
+Then from the root of the project, install the skill:
 
 \`\`\`bash
 wix skills add

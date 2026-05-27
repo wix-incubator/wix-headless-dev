@@ -9,44 +9,64 @@ const BODY = `# Wix Headless Skill
 
 ## Install
 
-Install or update the Wix CLI to the latest version:
+Pick **one** way to invoke the CLI and stick with it for the whole flow — don't mix \`npx @wix/cli\` and bare \`wix\` calls.
+
+- **If the project already has \`@wix/cli\` as a local devDependency** (\`./node_modules/@wix/cli\` exists): use the local binary via \`npx wix …\` or \`./node_modules/.bin/wix …\`. Skip the install step below.
+- **Otherwise**, install the CLI globally (only if it's not already on PATH):
 
 \`\`\`bash
-npm install -g @wix/cli@latest
+wix --version || npm install -g @wix/cli@latest
 \`\`\`
 
-Check if you are logged in to Wix:
+Below, \`wix\` means whichever form you chose above.
+
+Check if you are logged in:
 
 \`\`\`bash
-npx @wix/cli whoami
+wix whoami
 \`\`\`
 
-If not logged in, run the following **in background** (do not run it in the terminal directly):
+If not logged in, run \`wix login\` **as a background process** so you can stream its stdout while it waits for the user. Watch for an \`awaiting_user\` JSON event:
 
-\`\`\`bash
-npx @wix/cli login
+\`\`\`json
+{"event":"awaiting_user","userCode":"…","verificationUri":"…"}
 \`\`\`
 
-Read the task output file and wait for the \`awaiting_user\` JSON event: \`{"event":"awaiting_user","userCode":"…","verificationUri":"…"}\`. Surface the URL and code to the user in plain prose and wait for them to complete the browser login before continuing.
+Surface the \`verificationUri\` and \`userCode\` to the user in plain prose. Then poll \`wix whoami\` every few seconds until it prints an email — that's the signal login completed. Don't proceed until then.
 
-If there is no \`wix.config.json\` in the current directory, create a new Wix Headless project first. Replace \`<project-name>\` with a 3-20 char slug (lowercase letters and digits only, no hyphens) and \`<business-name>\` with the brand name:
+If \`wix.config.json\` already exists in the current directory, skip to "Install the skills" below — the project is already set up.
+
+Otherwise, create a new Wix Headless project. \`<business-name>\` is the human brand name (spaces allowed, e.g. \`Acme Bakery\`). \`<project-name>\` is a 3-20 char slug — lowercase letters and digits only, no hyphens (e.g. \`acmebakery\`, not \`acme-bakery\`):
 
 \`\`\`bash
 npm create @wix/new@latest headless -- \\
   --business-name "<business-name>" \\
   --project-name "<project-name>" \\
   --site-template blank \\
-  --no-publish \\
-  --skip-install
+  --no-publish
 \`\`\`
 
-Then from the root of the project, install the skill:
+The scaffold creates a \`./<project-name>/\` directory and installs npm dependencies into it. \`cd\` in before the next step:
+
+\`\`\`bash
+cd <project-name>
+\`\`\`
+
+## Install the skills
+
+From the project root (the directory containing \`wix.config.json\`):
 
 \`\`\`bash
 wix skills add
 \`\`\`
 
-Then read \`SKILL.md\` from the installed skill and follow it end to end.
+This installs the Wix skills into \`.agents/skills/\` (the universal location; the CLI also syncs them into any per-agent directory it detects). Re-running overwrites in place with no prompt — and may add new skills if the registry has grown — so only re-run if you want that.
+
+Then read the entry-point skill and follow it end to end:
+
+\`\`\`
+.agents/skills/wix-headless/SKILL.md
+\`\`\`
 
 ## Fallback: browse without installing
 

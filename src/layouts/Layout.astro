@@ -10,9 +10,10 @@ const {
 	ogDescription = "Headless commerce, bookings, CMS, identity — agent-wired, prompt-deep.",
 	image = "/og-image.png",
 	imageAlt = "Wix Headless — Build anything. Wix runs the business behind it.",
-	canonical = SITE_URL + "/",
+	canonical,
 } = Astro.props;
 const absoluteImage = image.startsWith("http") ? image : SITE_URL + image;
+const ogUrl = canonical ?? SITE_URL + "/";
 ---
 <!doctype html>
 <html lang="en">
@@ -24,19 +25,16 @@ const absoluteImage = image.startsWith("http") ? image : SITE_URL + image;
 		<link rel="apple-touch-icon" href="/icon.png" />
 		<meta name="generator" content={Astro.generator} />
 		<meta name="author" content="Wix.com, Inc." />
-		<link rel="canonical" href={canonical} />
+		{canonical && <link rel="canonical" href={canonical} />}
 		<title>{title}</title>
 		<meta name="description" content={description} />
-		<meta property="og:site_name" content="Wix Headless" />
 		<meta property="og:title" content={ogTitle} />
 		<meta property="og:description" content={ogDescription} />
-		<meta property="og:type" content="website" />
-		<meta property="og:url" content={canonical} />
+		<meta property="og:url" content={ogUrl} />
 		<meta property="og:image" content={absoluteImage} />
 		<meta property="og:image:width" content="1200" />
 		<meta property="og:image:height" content="630" />
 		<meta property="og:image:alt" content={imageAlt} />
-		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:site" content="@Wix" />
 		<meta name="twitter:title" content={ogTitle} />
 		<meta name="twitter:description" content={ogDescription} />

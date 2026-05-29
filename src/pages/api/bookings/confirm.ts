@@ -1,45 +1,60 @@
 import type { APIRoute } from "astro";
-import { bookings } from "@wix/bookings";
-import { auth } from "@wix/essentials";
+import { auth, httpClient } from "@wix/essentials";
 
 export const prerender = false;
+
+// Trial: route anonymous bookings through Confirm Or Decline with
+// `paymentStatus: PAID` instead of Confirm Booking. The hypothesis is that
+// Bookings only fires the customer confirmation email when the booking
+// transitions via the paid path — confirmBooking sets status without
+// touching payment status, so the email template never gets the trigger
+// it's waiting for.
+//
+// The endpoint isn't in @wix/bookings yet, so we hit REST directly via
+// the auth-aware fetch and elevate it (anonymous visitors lack
+// BOOKINGS.BOOKING_CONFIRM_OR_DECLINE).
+const elevatedFetch = auth.elevate(httpClient.fetchWithAuth);
 
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const { bookingId, revision, email, message } = body ?? {};
-    if (!bookingId || !revision) {
+    const { bookingId } = body ?? {};
+    if (!bookingId) {
       return new Response(
-        JSON.stringify({ error: "bookingId and revision are required" }),
+        JSON.stringify({ error: "bookingId is required" }),
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
-    // Anonymous-visitor bookings come back as `CREATED` because they lack
-    // the BOOKINGS.OVERRIDE_AVAILABILITY scope — the SDK silently drops
-    // any flag that would auto-confirm. Without confirmation no session is
-    // minted, no email goes out. `auth.elevate` runs confirmBooking with
-    // the site app's permissions, which can transition the booking.
-    const elevatedConfirm = auth.elevate(bookings.confirmBooking);
-    const res = await elevatedConfirm(bookingId, revision, {
-      participantNotification: {
-        notifyParticipants: true,
-        ...(typeof message === "string" && message.trim()
-          ? { message: message.trim() }
-          : {}),
-      },
-    } as any);
+    const url = `https://www.wixapis.com/bookings/v2/confirmation/${encodeURIComponent(
+      bookingId,
+    )}:confirmOrDecline`;
+    const res = await elevatedFetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paymentStatus: "PAID" }),
+    });
 
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return new Response(
+        JSON.stringify({ error: text || `confirmOrDecline failed (${res.status})` }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    const data: any = await res.json().catch(() => ({}));
     return new Response(
       JSON.stringify({
-        status: (res as any)?.booking?.status ?? null,
-        eventId: (res as any)?.booking?.bookedEntity?.slot?.eventId ?? null,
+        status: data?.booking?.status ?? null,
+        paymentStatus: data?.booking?.paymentStatus ?? null,
+        eventId: data?.booking?.bookedEntity?.slot?.eventId ?? null,
       }),
       { status: 200, headers: { "Content-Type": "application/json" } },
     );
   } catch (err: any) {
     return new Response(
-      JSON.stringify({ error: err?.message ?? "confirmBooking failed" }),
+      JSON.stringify({ error: err?.message ?? "confirmOrDecline failed" }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }

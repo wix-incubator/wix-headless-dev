@@ -230,49 +230,86 @@ export default function BookEngineer({
       const resource = pickResource(selectedSlot);
       const resourceId = resource?._id ?? resource?.id;
       const trimmedDescription = description.trim();
+
+      // Pre-create the contact so we can pass `contactId` into the
+      // booking. The `sessions_booked` automation that sends the
+      // confirmation email reads `contact_id` from its trigger payload to
+      // address the email — when the booking is created with only an
+      // anonymous-visitor identity, the CRM contact link may not be
+      // populated synchronously, so we resolve one ourselves and attach
+      // it explicitly.
+      let contactId: string | undefined;
+      try {
+        const contactRes: any = await submittedContact.appendOrCreateContact({
+          info: {
+            name: { first: firstName || "Guest", last: lastName },
+            emails: { items: [{ email, tag: "MAIN" as any }] },
+          },
+        } as any);
+        contactId = contactRes?.contactId;
+      } catch {
+        // Booking can still proceed without an explicit contactId — the
+        // API will create one from contactDetails.email. Don't block.
+      }
+
       // Appointment bookings always come back as `CREATED` for anonymous
       // visitors — `skipBusinessConfirmation` requires a scope anon visitors
       // don't have, so the SDK silently drops it. Without confirmation no
       // session is minted, no email goes out. We then POST to a server route
       // that confirms with elevated permissions.
-      const createRes: any = await bookings.createBooking({
-        bookedEntity: {
-          slot: {
-            serviceId: service._id,
-            scheduleId: selectedSlot.scheduleId,
-            startDate: selectedSlot.localStartDate ?? selectedSlot.startDate,
-            endDate: selectedSlot.localEndDate ?? selectedSlot.endDate,
-            timezone: selectedSlot.timezone ?? service.schedule?.timezone,
-            location: {
-              locationType: slotLocationType,
-              ...(selectedSlot.location?.id && { _id: selectedSlot.location.id }),
+      //
+      // `selectedPaymentOption: OFFLINE` declares the customer's intended
+      // payment method up front. Pairs with the server-side confirmOrDecline
+      // call (paymentStatus PAID) so Bookings treats this as a fully paid
+      // offline booking — the path that actually triggers the customer email.
+      const createRes: any = await bookings.createBooking(
+        {
+          bookedEntity: {
+            slot: {
+              serviceId: service._id,
+              scheduleId: selectedSlot.scheduleId,
+              startDate: selectedSlot.localStartDate ?? selectedSlot.startDate,
+              endDate: selectedSlot.localEndDate ?? selectedSlot.endDate,
+              timezone: selectedSlot.timezone ?? service.schedule?.timezone,
+              location: {
+                locationType: slotLocationType,
+                ...(selectedSlot.location?.id && { _id: selectedSlot.location.id }),
+              },
+              ...(resourceId && { resource: { _id: resourceId } }),
             },
-            ...(resourceId && { resource: { _id: resourceId } }),
           },
-        },
-        contactDetails: {
-          firstName: firstName || "Guest",
-          lastName,
-          email,
-        },
-        totalParticipants: 1,
-      } as any);
+          contactDetails: {
+            firstName: firstName || "Guest",
+            lastName,
+            email,
+            ...(contactId ? { contactId } : {}),
+          },
+          totalParticipants: 1,
+          selectedPaymentOption: "OFFLINE",
+        } as any,
+        {
+          // The "Send clients an email confirmation when they book" site
+          // automation gates on `notify_participants=true` in the
+          // `sessions_booked` trigger payload — and that flag is sourced
+          // from the booking's stored `participantNotification`, which is
+          // only written at create-time. Confirm-time notification args
+          // don't backfill it, so we must set it here.
+          participantNotification: {
+            notifyParticipants: true,
+            ...(trimmedDescription
+              ? { message: `What I want to build:\n${trimmedDescription}` }
+              : {}),
+          },
+        } as any,
+      );
 
       const createdBooking = createRes?.booking ?? createRes;
       const bookingId = createdBooking?._id ?? createdBooking?.id;
-      const revision = createdBooking?.revision;
-      if (bookingId && revision) {
+      if (bookingId) {
         const confirmRes = await fetch("/api/bookings/confirm", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            bookingId,
-            revision,
-            email,
-            message: trimmedDescription
-              ? `What I want to build:\n${trimmedDescription}`
-              : undefined,
-          }),
+          body: JSON.stringify({ bookingId }),
         });
         if (!confirmRes.ok) {
           const body = await confirmRes.json().catch(() => ({}));

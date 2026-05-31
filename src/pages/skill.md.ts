@@ -26,17 +26,25 @@ Check if you are logged in:
 wix whoami
 \`\`\`
 
-If not logged in, run \`wix login\` **as a background process** so you can stream its stdout while it waits for the user. Watch for an \`awaiting_user\` JSON event:
+If not logged in, run \`wix login\` (or \`npx @wix/cli login\`). It is **safe to run from a non-interactive AI-agent environment**: when the CLI detects an AI agent it skips the interactive UI and emits JSON events on stdout, one per line. Run it **as a background process** so you can stream those events while it waits for the user:
 
-\`\`\`json
-{"event":"awaiting_user","userCode":"…","verificationUri":"…"}
-\`\`\`
+- \`{"event":"awaiting_user","verificationUri":"…","userCode":"…","expiresInSeconds":…}\` — surface the \`verificationUri\` and \`userCode\` to the user in plain prose and wait for them to complete login in their browser.
+- \`{"event":"success","email":"…","userId":"…"}\` — login complete; continue.
+- \`{"event":"logged_in","email":"…","userId":"…"}\` — there was already a valid session, nothing to do.
 
-Surface the \`verificationUri\` and \`userCode\` to the user in plain prose. Then poll \`wix whoami\` every few seconds until it prints an email — that's the signal login completed. Don't proceed until then.
+Don't proceed until you see a \`success\` or \`logged_in\` event.
 
-If \`wix.config.json\` already exists in the current directory, skip to "Install the skills" below — the project is already set up.
+The next step depends on the state of the current directory. Match it to one of these three cases:
 
-Otherwise, create a new Wix Headless project. \`<business-name>\` is the human brand name (spaces allowed, e.g. \`Acme Bakery\`). \`<project-name>\` is a 3-20 char slug — lowercase letters and digits only, no hyphens (e.g. \`acmebakery\`, not \`acme-bakery\`):
+- **Already a Wix project** — a \`wix.config.json\` is present: it is set up already. Run **no** \`@wix/new\` command — skip straight to "Install the skills" below.
+- **An existing project, not yet connected to Wix** — the directory already holds the user's own project (e.g. an HTML / JSX / Vite app) but has no \`wix.config.json\`: wrap it in place with \`init\`.
+- **An empty directory** — create a new Wix Headless project with \`headless\`.
+
+The two \`@wix/new\` branches below each connect the directory to a Wix project (a Site + Headless Project), which the skill needs in order to build. Pick the branch matching your case:
+
+### Empty directory → create a new Wix Headless project
+
+\`<business-name>\` is the human brand name (spaces allowed, e.g. \`Acme Bakery\`). \`<project-name>\` is a 3-20 char slug — lowercase letters and digits only, no hyphens (e.g. \`acmebakery\`, not \`acme-bakery\`):
 
 \`\`\`bash
 npm create @wix/new@latest headless -- \\
@@ -46,21 +54,41 @@ npm create @wix/new@latest headless -- \\
   --no-publish
 \`\`\`
 
-The scaffold creates a \`./<project-name>/\` directory and installs npm dependencies into it. \`cd\` in before the next step:
+This creates a \`./<project-name>/\` directory and installs npm dependencies into it. \`cd\` in before the next step:
 
 \`\`\`bash
 cd <project-name>
 \`\`\`
 
-## Install the skills
+### Existing project (no \`wix.config.json\`) → initialize Wix in place
 
-From the project root (the directory containing \`wix.config.json\`):
+The directory already holds the user's project, so do **not** scaffold a new one — wrap the existing one in place. From inside the project directory, run it in the foreground (it uses sensible defaults and is non-blocking):
 
 \`\`\`bash
-wix skills add
+npm create @wix/new@latest init
 \`\`\`
 
-This installs the Wix skills into \`.agents/skills/\` (the universal location; the CLI also syncs them into any per-agent directory it detects). Re-running overwrites in place with no prompt — and may add new skills if the registry has grown — so only re-run if you want that.
+Same package and invoker as the new-project command above — only the subcommand differs: \`init\` for an existing project, \`headless\` for a new one. Do **not** combine them (\`… headless init\` is a known regression). This connects the current directory to a Wix Site + Headless Project; stay where you are — it is now the project root.
+
+## Install the skills
+
+From the project root, install the skills. The command depends on how the project was set up:
+
+- **Created with \`headless\` above** (an Astro project) — use the Wix CLI:
+
+  \`\`\`bash
+  wix skills add
+  \`\`\`
+
+- **Initialized with \`init\`** (a Site project) — \`wix skills\` is **not** registered for this project type, so install non-interactively from the registry instead:
+
+  \`\`\`bash
+  npx skills add wix/skills --yes
+  \`\`\`
+
+  (If the project was already set up when you started, use \`wix skills add\` when it's available and fall back to the \`npx\` form otherwise.)
+
+Either way the skills land in \`.agents/skills/\` (the universal location; they're also synced into any per-agent directory detected). Re-running overwrites in place — and may add new skills if the registry has grown — so only re-run if you want that.
 
 Then read the entry-point skill and follow it end to end:
 

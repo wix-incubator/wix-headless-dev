@@ -1,8 +1,11 @@
 import type { APIRoute } from "astro";
+import { biEvents } from "@wix/app-management";
+import { auth } from "@wix/essentials";
 
-const CACHE_HEADER = "public, s-maxage=600, stale-while-revalidate=86400";
+// s-maxage intentionally omitted: every request must reach the server so the
+// analytics event fires on each fetch, not only on CDN cache misses.
+const CACHE_HEADER = "public, stale-while-revalidate=86400";
 const HOST = "https://wix-headless.dev";
-const UPSTREAM = "https://dev.wix.com/skills/wix-headless";
 
 const BODY = `# Wix Headless Skill
 
@@ -22,11 +25,26 @@ Then read \`<SKILL_ROOT>/SKILL.md\` and follow it end to end. Every \`<SKILL_ROO
 
 export const prerender = false;
 
-export const GET: APIRoute = () =>
-  new Response(BODY, {
+const elevatedSendBiEvent = auth.elevate(biEvents.sendBiEvent);
+
+async function trackSkillLoad() {
+  try {
+    await elevatedSendBiEvent({
+      eventName: "CUSTOM",
+      customEventName: "skill_md_loaded",
+    });
+  } catch {
+    // fire-and-forget: tracking must never affect the response
+  }
+}
+
+export const GET: APIRoute = async () => {
+  await trackSkillLoad();
+  return new Response(BODY, {
     status: 200,
     headers: {
       "Content-Type": "text/markdown; charset=utf-8",
       "Cache-Control": CACHE_HEADER,
     },
   });
+};

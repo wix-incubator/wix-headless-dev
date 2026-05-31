@@ -14,6 +14,7 @@
     "skills": "wix skills"
   },
   "dependencies": {
+    "@wix/app-management": "^1.0.0",
     "@wix/astro": "^2.47.0",
     "@wix/astro-pages": "^2.0.4",
     "@wix/blog": "^1.0.606",

@@ -63,7 +63,7 @@ wix release`,
 };`,
     codeLang: "ts",
     codePath: "src/pages/[...path].md.ts",
-    githubUrl: `${REPO}/src/pages/%5B...path%5D.md.ts`,
+    githubUrl: `${REPO}/src/pages/skill.md.ts`,
     docsUrl: "https://docs.astro.build/en/guides/endpoints/",
   },
   "wix-cli": {

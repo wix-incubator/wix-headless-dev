@@ -4,7 +4,6 @@ import { analytics } from "@wix/site";
 const INTENTS_DESKTOP = [
   "a storefront for handmade ceramics",
   "a booking site for a yoga studio",
-  "a marketplace for local artists",
   "a restaurant with online ordering",
   "a portfolio with a paid clients area",
 ];
@@ -14,7 +13,6 @@ const INTENTS_DESKTOP = [
 const INTENTS_MOBILE = [
   "a storefront",
   "a booking site",
-  "a marketplace",
   "a restaurant",
   "a portfolio",
 ];

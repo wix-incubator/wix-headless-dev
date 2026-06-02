@@ -54,6 +54,158 @@ const ogUrl = canonical ?? SITE_URL + "/";
 		})} />
 		<link rel="preconnect" href="https://rsms.me/" />
 		<link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+		<!--
+			Wix's injected cookie consent UI ([data-hook^="ccsu-"]) ships a light
+			"wix.com" look: white surfaces, Madefor brand font, black-outlined pill
+			buttons. On this dark site that clashed (and it sets no text color of its
+			own, so it inherited our light --fg onto white = unreadable). Re-skin both
+			the bottom banner AND the "Advanced" settings modal onto the site's design
+			tokens: dark card surfaces, Inter body / mono buttons, accent primary.
+
+			Notes:
+			- !important is required: the consent bundle injects its stylesheet AFTER
+			  ours, so equal-specificity rules would lose on source order.
+			- Target the stable data-hooks, not the hashed classes (.aspXfg, ._4q546…)
+			  the bundle regenerates each build. The one exception is the modal panel,
+			  which has no hook — it's the only child of [data-hook="ccsu-modal"].
+			- We set the font on the shared wrapper so nothing falls back to serif
+			  (the bundle requests Madefor-Text, which we no longer load).
+		-->
+		<style is:global>
+			/* Shared: font for the whole consent UI (banner + modal). accent-color
+			   natively themes the modal's consent toggles/checkboxes (inherits down)
+			   so they don't render as a light-theme control on our dark surfaces. */
+			[data-hook="ccsu-banner-wrapper"] {
+				font-family: var(--sans) !important;
+				accent-color: var(--accent) !important;
+			}
+
+			/* Keyboard focus: the bundle's native ring is built for its light theme
+			   and washes out on dark. Give every interactive control a visible,
+			   on-brand focus-visible ring (WCAG 2.4.7 / 1.4.11). */
+			[data-hook="ccsu-banner-accept"]:focus-visible,
+			[data-hook="ccsu-banner-decline-all"]:focus-visible,
+			[data-hook="ccsu-banner-decline"]:focus-visible,
+			[data-hook="ccsu-banner-settings"]:focus-visible,
+			[data-hook="ccsu-cookie-policy-link"]:focus-visible,
+			[data-hook="ccsu-modal-save"]:focus-visible,
+			[data-hook="ccsu-modal-close"]:focus-visible {
+				outline: 2px solid var(--accent) !important;
+				outline-offset: 2px !important;
+				border-radius: 8px !important;
+			}
+
+			/* ---- Bottom banner ---- */
+			[data-hook="ccsu-banner-root"] {
+				background: var(--bg-card) !important;
+				color: var(--fg) !important;
+				border-top: 1px solid var(--border-strong) !important;
+				box-shadow: 0 -10px 40px -16px rgba(0, 0, 0, 0.7) !important;
+			}
+			[data-hook="ccsu-cookie-policy-link"] {
+				color: var(--accent) !important;
+			}
+			/* "Advanced"/settings + decline are text-link controls. They carry the
+			   bundle's own font-family: Madefor-Text, which beats the --sans we set
+			   on the wrapper (a directly-matched rule wins over an inherited one),
+			   so without an explicit family they render in the unloaded-Madefor
+			   fallback — a different font from the mono action buttons beside them.
+			   Pin them to --mono so every banner control shares one font. */
+			[data-hook="ccsu-banner-settings"],
+			[data-hook="ccsu-banner-decline"] {
+				color: var(--fg-muted) !important;
+				font-family: var(--mono) !important;
+			}
+			[data-hook="ccsu-banner-settings"]:hover,
+			[data-hook="ccsu-banner-decline"]:hover {
+				color: var(--fg) !important;
+			}
+			[data-hook="ccsu-banner-accept"],
+			[data-hook="ccsu-banner-decline-all"],
+			[data-hook="ccsu-modal-save"] {
+				font-family: var(--mono) !important;
+				border-radius: 8px !important;
+				transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease !important;
+			}
+			/* Reject must read as an equal-weight choice to Accept, not a demoted
+			   one — keep its label at full --fg (consent symmetry, not a dark
+			   pattern). It stays visually distinct via fill: outlined vs. accent. */
+			[data-hook="ccsu-banner-decline-all"] {
+				background: transparent !important;
+				border: 1px solid var(--border-strong) !important;
+				color: var(--fg) !important;
+			}
+			[data-hook="ccsu-banner-decline-all"]:hover {
+				background: var(--bg-card-2) !important;
+				border-color: var(--fg-faint) !important;
+			}
+			[data-hook="ccsu-banner-accept"],
+			[data-hook="ccsu-modal-save"] {
+				background: var(--accent-fade) !important;
+				/* Derive the border from --accent so a rebrand moves it too,
+				   instead of leaving a hardcoded yellow behind. */
+				border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent) !important;
+				color: var(--accent) !important;
+			}
+			[data-hook="ccsu-banner-accept"]:hover,
+			[data-hook="ccsu-modal-save"]:hover {
+				background: var(--accent) !important;
+				border-color: var(--accent) !important;
+				color: var(--bg) !important;
+			}
+
+			/* ---- "Advanced" settings modal ---- */
+			/* Scrim behind the dialog */
+			[data-hook="ccsu-modal"] {
+				background: rgba(0, 0, 0, 0.6) !important;
+			}
+			/* The dialog panel (only child of the scrim; has no data-hook of its
+			   own). Match both <section> and a hookless <div> so a bundle markup
+			   change doesn't strip the panel back to white-on-light. */
+			[data-hook="ccsu-modal"] > section,
+			[data-hook="ccsu-modal"] > div:not([data-hook]) {
+				background: var(--bg-card) !important;
+				color: var(--fg) !important;
+				border: 1px solid var(--border-strong) !important;
+				border-radius: var(--radius) !important;
+				box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.7) !important;
+			}
+			/*
+				The modal's text elements declare their own `font-family: Madefor-Text`,
+				so the wrapper rule above can't reach them — without Madefor loaded they
+				fall back to Times (serif). Force the site font directly on each hook.
+			*/
+			/* Headings use the mono face so the "Advanced" panel matches the site's
+			   terminal/button aesthetic (the modal buttons are already mono);
+			   the descriptive paragraphs below stay --sans for readability. */
+			[data-hook="ccsu-modal-title"],
+			[data-hook="ccsu-modal-s1-title"],
+			[data-hook="ccsu-modal-s2-title"] {
+				color: var(--fg) !important;
+				font-family: var(--mono) !important;
+				/* Mono glyphs are ~20% wider and carry a taller line box than the
+				   Madefor these rows were sized for, so headings wrapped and the
+				   toggles fell out of alignment. Scale down to recover roughly the
+				   original footprint and pin the line-height to the bundle's
+				   rhythm — keeps the mono look without breaking the layout. */
+				font-size: 0.85em !important;
+				line-height: 1.3 !important;
+				letter-spacing: 0 !important;
+			}
+			[data-hook="ccsu-modal-content"],
+			[data-hook="ccsu-modal-s1-text"],
+			[data-hook="ccsu-modal-s2-text"],
+			[data-hook="ccsu-modal-recommended-checkbox-label"] {
+				color: var(--fg-muted) !important;
+				font-family: var(--sans) !important;
+			}
+			[data-hook="ccsu-modal-close"] {
+				color: var(--fg-muted) !important;
+			}
+			[data-hook="ccsu-modal-close"]:hover {
+				color: var(--fg) !important;
+			}
+		</style>
 	</head>
 	<body>
 		<slot />

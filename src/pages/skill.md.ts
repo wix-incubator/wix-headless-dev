@@ -49,20 +49,22 @@ The two \`@wix/new\` branches below each connect the directory to a Wix project 
 
 ### Empty directory → create a new Wix Headless project
 
-\`<business-name>\` is the human brand name (spaces allowed, e.g. \`Acme Bakery\`). \`<project-name>\` is a 3-20 char slug — lowercase letters and digits only, no hyphens (e.g. \`acmebakery\`, not \`acme-bakery\`):
+\`<business-name>\` is the human brand name (spaces allowed, e.g. \`Acme Bakery\`). The CLI derives the Wix project display name and URL slug from it, so it must contain at least one English letter or number — if the brand is only emoji or punctuation, ask the user for one that includes a letter or number before scaffolding.
+
+\`<folder-name>\` only names the local project directory. Derive it from the brand: lowercase, convert whitespace/punctuation runs to \`-\`, drop every char that isn't \`[a-z0-9-]\`, then trim and collapse hyphens (e.g. \`Acme Bakery\` → \`acme-bakery\`, \`Bloom & Root\` → \`bloom-root\`). It must match \`^[a-z0-9][a-z0-9-]*$\` and be a valid npm package name; if the derivation comes out empty, ask the user for a folder name.
 
 \`\`\`bash
 npm create @wix/new@latest headless -- \\
   --business-name "<business-name>" \\
-  --project-name "<project-name>" \\
+  --folder-name "<folder-name>" \\
   --site-template blank \\
   --no-publish
 \`\`\`
 
-This creates a \`./<project-name>/\` directory and installs npm dependencies into it. \`cd\` in before the next step:
+This creates a \`./<folder-name>/\` directory and installs npm dependencies into it. \`cd\` in before the next step:
 
 \`\`\`bash
-cd <project-name>
+cd <folder-name>
 \`\`\`
 
 ### Existing project (no \`wix.config.json\`) → initialize Wix in place

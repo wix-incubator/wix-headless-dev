@@ -11,6 +11,7 @@ const {
 	image = "/og-image.png",
 	imageAlt = "Wix Headless — Build anything. Wix runs the business behind it.",
 	canonical,
+	xray = true,
 } = Astro.props;
 const absoluteImage = image.startsWith("http") ? image : SITE_URL + image;
 const ogUrl = canonical ?? SITE_URL + "/";
@@ -209,6 +210,6 @@ const ogUrl = canonical ?? SITE_URL + "/";
 	</head>
 	<body>
 		<slot />
-		<XRayLayer client:load />
+		{xray && <XRayLayer client:load />}
 	</body>
 </html>

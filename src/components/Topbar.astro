@@ -1,6 +1,7 @@
 ---
 import XRayToggle from "./xray/Toggle.tsx";
 import WixLogo from "../assets/wix.svg";
+const { xray = true } = Astro.props;
 ---
 
 <header class="topbar">
@@ -25,6 +26,6 @@ import WixLogo from "../assets/wix.svg";
         <path d="M14 2L7.5 8.5" />
       </svg>
     </a>
-    <XRayToggle client:load />
+    {xray && <XRayToggle client:load />}
   </nav>
 </header>

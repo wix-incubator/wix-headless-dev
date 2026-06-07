@@ -65,7 +65,7 @@ if (notFound) {
   Astro.response.status = 404;
 }
 
-const downloadUrl = siteId ? `https://wixapis.com/instant-site/download/${siteId}` : null;
+const downloadUrl = siteId ? `https://www.wix.com/_api/wixstro-deployments/v1/instant-sites/${siteId}/download` : null;
 const dashboardUrl = siteId ? `https://manage.wix.com/dashboard/${siteId}` : null;
 const domainsUrl = siteId ? `https://manage.wix.com/dashboard/${siteId}/domain-settings` : null;
 

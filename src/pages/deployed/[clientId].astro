@@ -1,0 +1,234 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Topbar from "../../components/Topbar.astro";
+import Footer from "../../components/Footer.astro";
+import CopyPrompt from "../../components/CopyPrompt.tsx";
+import PromptTitle from "../../components/PromptTitle.tsx";
+import "../../styles/welcome.css";
+import "../../styles/site-ready.css";
+
+// Hidden, per-user landing page at /deployed/:clientId. Reached only via the URL
+// we hand back to vibe-design platforms (Claude Design, etc.) after we provision
+// a hosted Managed Headless site from a design they "sent" us. Not linked from
+// anywhere in the site's navigation, and noindex'd below.
+//
+// The path param is the app's client id. We resolve it server-side via the
+// app-service API, then read the HEADLESS_OAUTH component for:
+//   siteId               → dashboard / download / domains links
+//   redirectUrlWixPages  → the live site URL (visit + preview)
+// Anything we can't resolve renders a friendly 404 state (status 404).
+const { clientId } = Astro.params;
+
+// Client ids are alphanumeric + dashes (the API wants a GUID). Reject anything
+// else before putting it in the fetch URL.
+const safeClientId = clientId && /^[A-Za-z0-9-]+$/.test(clientId) ? clientId : null;
+
+// Only ever surface http(s) — never let a javascript:/data: URL from the API
+// reach an href/iframe.
+function safeHttpUrl(raw: unknown): string | null {
+  if (typeof raw !== "string" || !raw) return null;
+  try {
+    const u = new URL(raw);
+    return u.protocol === "http:" || u.protocol === "https:" ? u.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+let headlessOauth: { siteId?: unknown; redirectUrlWixPages?: unknown } | null = null;
+if (safeClientId) {
+  try {
+    const res = await fetch(
+      `https://dev.wix.com/_api/app-service/v1/apps/${safeClientId}`,
+      { headers: { accept: "application/json" } },
+    );
+    if (res.ok) {
+      const app = await res.json();
+      const components = app?.components ?? app?.app?.components;
+      headlessOauth =
+        components?.find((c: any) => c?.compType === "HEADLESS_OAUTH")
+          ?.compData?.headlessOauth ?? null;
+    }
+  } catch {
+    headlessOauth = null;
+  }
+}
+
+const rawSiteId = headlessOauth?.siteId;
+const siteId =
+  typeof rawSiteId === "string" && /^[A-Za-z0-9-]+$/.test(rawSiteId) ? rawSiteId : null;
+const siteUrl = safeHttpUrl(headlessOauth?.redirectUrlWixPages);
+
+// Couldn't resolve the site behind this client id → render the 404 state.
+const notFound = !siteId || !siteUrl;
+if (notFound) {
+  Astro.response.status = 404;
+}
+
+const downloadUrl = siteId ? `https://www.wix.com/_api/wixstro-deployments/v1/instant-sites/${siteId}/download` : null;
+const dashboardUrl = siteId ? `https://manage.wix.com/dashboard/${siteId}` : null;
+const domainsUrl = siteId ? `https://manage.wix.com/dashboard/${siteId}/domain-settings` : null;
+
+// Strip the scheme for a cleaner address-bar label (example.com vs https://…).
+const siteLabel = siteUrl ? siteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "") : null;
+
+// Only nudge to connect a custom domain while the site is still on a Wix
+// domain (e.g. *.wixsite.com). Once a custom domain is connected the URL no
+// longer contains "wix", so the nudge drops away.
+const showConnectDomain = !!siteUrl && /wix/i.test(siteUrl);
+
+const headline = notFound ? "We couldn't find that site" : "Your site is live";
+
+// The prompt the user pastes back into their coding agent. The box shows a
+// short, human-readable version (with the host accent-styled); the clipboard
+// gets the fuller machine-ready version carrying the real download URL.
+// Display lines as styled segments — same tone trick as the home prompt:
+// framing words grayed (tone "muted"), the host accent-styled (tone "host").
+const promptDisplayLines = [
+  [
+    { text: "Build ", tone: "muted" },
+    { text: "on what I started with Wix Headless." },
+  ],
+  [
+    { text: "Download ", tone: "muted" },
+    { text: "my project files and build out its features" },
+  ],
+  [
+    { text: "Using ", tone: "muted" },
+    { text: "wix-headless.dev", tone: "host" },
+  ],
+];
+const promptCopyText = notFound
+  ? ""
+  : `Help me keep building my live Wix Headless site. Download my project files from ${downloadUrl}, then follow the Wix Headless skill at wix-headless.dev/skill.md to implement the features it needs — storefront, bookings, CMS, members, and more — wired to a real Wix backend.`;
+
+const description = notFound
+  ? "We couldn't find that site. The link may have expired or the site isn't ready yet."
+  : "Your hosted Wix Headless site is live. Preview it, then copy the prompt to keep building in your coding agent.";
+---
+
+<Layout title={`${headline} | Wix Headless`} description={description} xray={false}>
+  <meta slot="seo-tags" name="robots" content="noindex, nofollow" />
+
+  <div class="page">
+    <Topbar xray={false} />
+
+    {notFound ? (
+      <main class="ready">
+        <section class="ready__error">
+          <span class="kicker">Error 404</span>
+          <h1 class="ready__title">{headline}</h1>
+          <p class="ready__sub">
+            This link may have expired, or the site isn't ready just yet.
+            Double-check the link from your coding platform — or start a fresh
+            build from the homepage.
+          </p>
+          <div class="ready__cta-actions ready__cta--error">
+            <a class="ready__btn ready__btn--primary" href="/">Back to homepage</a>
+            <a class="ready__btn" href="https://dev.wix.com/docs/go-headless" target="_blank" rel="noreferrer">
+              Read the docs
+            </a>
+          </div>
+        </section>
+      </main>
+    ) : (
+      <main class="ready">
+        <header class="ready__hero">
+          <h1 class="ready__title">{headline}</h1>
+          <p class="ready__sub">
+            Your design is now a real, hosted website — Wix runs the hosting,
+            SSL, global CDN, and a full management dashboard, nothing to deploy
+            or maintain. It's already wired to production business APIs for
+            commerce, services, CMS, members, and more. Ask your AI agent to
+            activate the ones you need.
+          </p>
+        </header>
+
+        <section class="ready__cta" aria-label="Next steps">
+          <div class="ready__cta-actions">
+            <a class="ready__btn" href={siteUrl} target="_blank" rel="noreferrer">
+              Visit your site
+            </a>
+            <a class="ready__btn" href={dashboardUrl} target="_blank" rel="noreferrer">
+              Open dashboard
+            </a>
+          </div>
+          <a class="ready__continue" href="#continue">
+            <span class="ready__continue-title">Continue building with your AI agent</span>
+            <svg class="ready__continue-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 8h10" />
+              <path d="M9 4l4 4-4 4" />
+            </svg>
+          </a>
+        </section>
+
+        <section class="ready__preview" aria-label="Live preview of your site">
+          <div class="browser">
+            <div class="browser__bar">
+              <span class="browser__dots" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </span>
+              <span class="browser__addr">
+                <span class="browser__url">{siteLabel}</span>
+                {showConnectDomain && (
+                  <a class="browser__domain" href={domainsUrl} target="_blank" rel="noreferrer">
+                    Connect domain
+                  </a>
+                )}
+              </span>
+            </div>
+            <iframe
+              class="browser__frame"
+              src={siteUrl}
+              title="Your live Wix Headless site"
+              loading="lazy"
+              sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+              referrerpolicy="no-referrer"
+            ></iframe>
+          </div>
+        </section>
+
+        <div id="continue" class="bento__prompt-zone">
+          <section class="bento__prompt block" aria-label="Continue with this prompt">
+            <PromptTitle client:load lead="Use this with" />
+            <CopyPrompt
+              lines={promptDisplayLines}
+              copyText={promptCopyText}
+              client:load
+            />
+          </section>
+        </div>
+
+        <section class="bento__steps block ready__steps" aria-label="How it works">
+          <ol class="steps">
+            <li class="step">
+              <span class="step__num">01</span>
+              <span class="step__verb">Copy</span>
+              <span class="step__detail">the prompt</span>
+            </li>
+            <li class="step">
+              <span class="step__num">02</span>
+              <span class="step__verb">Paste</span>
+              <span class="step__detail">into your agent</span>
+            </li>
+            <li class="step">
+              <span class="step__num">03</span>
+              <span class="step__verb">Ship</span>
+              <span class="step__detail">on a real Wix <a href="/skill.md">backend</a></span>
+            </li>
+          </ol>
+          <a class="ready__guide" href="https://dev.wix.com/docs/go-headless" target="_blank" rel="noreferrer">
+            Read the full guide
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3" />
+              <path d="M9 2h5v5" />
+              <path d="M14 2L7.5 8.5" />
+            </svg>
+          </a>
+        </section>
+      </main>
+    )}
+
+    <Footer />
+  </div>
+</Layout>

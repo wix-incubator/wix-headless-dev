@@ -3,7 +3,10 @@ import "../styles/xray.css";
 import XRayLayer from "../components/xray/Layer.tsx";
 
 const SITE_URL = "https://www.wix-headless.dev";
-const { canonical } = Astro.props;
+const {
+	canonical,
+	xray = true,
+} = Astro.props;
 const ogUrl = canonical ?? SITE_URL + "/";
 ---
 <!doctype html>
@@ -188,6 +191,6 @@ const ogUrl = canonical ?? SITE_URL + "/";
 	</head>
 	<body>
 		<slot />
-		<XRayLayer client:load />
+		{xray && <XRayLayer client:load />}
 	</body>
 </html>

@@ -1,0 +1,323 @@
+/* ===== site-ready page =====
+   The hidden per-user "your hosted site is live" landing. Reuses welcome.css
+   tokens (.kicker, .block, --accent, etc.); everything here is ready-* scoped
+   so it can't leak into the marketing pages. */
+
+.ready {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 32px;
+}
+
+/* ----- Not-found (404) state -----
+   Same chrome (topbar/footer) and type scale as the success page, just a
+   centered message block + a couple of escape-hatch actions. */
+.ready__error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+  max-width: 62ch;
+  padding: clamp(48px, 12vh, 110px) 0;
+}
+.ready__error .kicker { margin-bottom: 0; color: var(--accent); }
+.ready__cta--error { margin-top: 8px; flex-wrap: wrap; }
+
+/* ----- Hero / success header -----
+   Mirrors .bento__hero: neutral border, a single faint top-corner wash, no
+   glow. The page's one sanctioned yellow-glow moment is the prompt zone
+   below — the hero stays quiet so it doesn't compete. */
+.ready__hero {
+  padding: clamp(36px, 6vw, 56px) clamp(28px, 5vw, 48px);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(250, 255, 0, 0.06) 0%, transparent 55%),
+    var(--bg-card);
+}
+.ready__title {
+  font-size: var(--fs-display);
+  line-height: 1.02;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  margin: 0 0 16px;
+  max-width: 20ch;
+}
+.ready__sub {
+  font-size: var(--fs-lede);
+  color: var(--fg-muted);
+  margin: 0;
+  max-width: 62ch;
+  line-height: 1.55;
+}
+
+/* ----- CTA row -----
+   Left: a solid "Visit your site" primary + an outlined "Open dashboard".
+   Pushed to the right: the highlighted "Continue building" box (the main next
+   step). align-items: stretch keeps the left buttons the box's height. */
+.ready__cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 16px;
+}
+.ready__cta-actions {
+  display: flex;
+  gap: 12px;
+}
+/* Secondary buttons (Visit / Open dashboard): the original look — dashed accent
+   border on a card surface, --fg text, brightening to the accent on hover. The
+   continue box is the primary: solid accent border + glow. */
+.ready__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 24px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: var(--fg);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+.ready__btn:hover { border-color: var(--fg-faint); }
+/* Primary (Visit your site): a crisp white border — a notch up from the neutral
+   secondary, while the continue box keeps the yellow glow as the lead. */
+.ready__btn--primary {
+  border-color: var(--fg);
+}
+.ready__btn--primary:hover { border-color: var(--fg); }
+
+/* ----- "Continue building" — the highlighted CTA -----
+   Sits at the right of the row; solid accent border + glow (the prompt-box
+   vocabulary) so it reads as the main next step. Anchors to #continue. */
+.ready__continue {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px clamp(20px, 2.5vw, 28px);
+  border: 1px solid rgba(250, 255, 0, 0.45);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(250, 255, 0, 0.035) 0%, transparent 65%),
+    var(--bg-card-2);
+  box-shadow:
+    0 0 0 4px rgba(250, 255, 0, 0.04),
+    0 0 50px -12px rgba(250, 255, 0, 0.16);
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.ready__continue:hover { border-color: var(--accent); }
+.ready__continue-title {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  min-width: 0;
+}
+.ready__continue-arrow {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: var(--fg-muted);
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+.ready__continue:hover .ready__continue-arrow { transform: translateX(3px); color: var(--fg); }
+
+/* Narrow screens: stack the CTAs full-width. */
+@media (max-width: 700px) {
+  .ready__cta { flex-direction: column; align-items: stretch; }
+  .ready__cta-actions { flex-direction: column; }
+}
+
+/* ----- Live preview (faux browser chrome around the iframe) ----- */
+.ready__preview { width: 100%; }
+.browser {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-card);
+}
+.browser__bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 16px;
+  background: var(--bg-card-2);
+  border-bottom: 1px solid var(--border);
+}
+.browser__dots {
+  display: inline-flex;
+  gap: 7px;
+  flex-shrink: 0;
+}
+.browser__dots span {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+.browser__addr {
+  display: flex;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  color: var(--fg-muted);
+  background: var(--bg);
+  border: 1px solid var(--fg-faint);
+  border-radius: 6px;
+  padding: 8px 12px;
+  flex: 1;
+  min-width: 0;
+}
+.browser__url {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.browser__frame {
+  display: block;
+  width: 100%;
+  height: clamp(420px, 62vh, 720px);
+  border: 0;
+  background: #fff;
+}
+/* Subtle custom-domain nudge, sitting inside the address bar at its end,
+   separated from the URL by a faint divider. Stays faint (--fg-faint) so it
+   reads as an aside, not a CTA, and only lights up to the accent on hover. */
+.browser__domain {
+  flex: 0 0 auto;
+  margin-left: 12px;
+  padding-left: 12px;
+  border-left: 1px solid var(--border-strong);
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  text-transform: lowercase;
+  color: var(--fg);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.browser__domain:hover { text-decoration: underline; }
+
+/* ----- Setup steps -----
+   Reuse the home page's .bento__steps / .steps ribbon, with the steps pushed
+   left and a "Read the full guide" docs link on the right of the row. */
+.ready__steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.ready__steps .steps {
+  flex: 1;
+  justify-content: flex-start;
+}
+.ready__guide {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  font-family: var(--mono);
+  font-size: var(--fs-base);
+  color: var(--fg-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+.ready__guide:hover { color: var(--fg); }
+.ready__guide svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+@media (max-width: 640px) {
+  /* Stack: steps ribbon (already column on mobile) then the guide link below,
+     separated by the same hairline the steps use. */
+  .ready__steps { flex-direction: column; align-items: stretch; gap: 0; }
+  .ready__steps .steps { flex: none; }
+  .ready__guide {
+    padding-top: 16px;
+    border-top: 1px solid var(--border-strong);
+  }
+}
+
+/* Smooth-scroll for the "Continue building" → #continue anchor, with a little
+   headroom so the section title isn't flush against the viewport top. */
+html { scroll-behavior: smooth; }
+#continue { scroll-margin-top: 24px; }
+
+/* ----- Copy-prompt centerpiece -----
+   The glowing .bento__prompt-zone (from welcome.css) is the standalone block,
+   exactly like the home page: the "Use this with …" eyebrow + the box, no outer
+   card. */
+
+/* Box variant: same surface + Copy button as .tryprompt__box, but multi-line
+   (auto height) with the Copy button vertically centered. */
+.copyprompt {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-card-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 20px 22px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.copyprompt:hover { border-color: #3a3a40; }
+.copyprompt:focus-within { border-color: #4a4a52; }
+.copyprompt__text {
+  flex: 1;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: var(--fs-base);
+  line-height: 1.7;
+  color: var(--fg);
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-width: 0;
+}
+.copyprompt__copy {
+  flex: 0 0 auto;
+  background: transparent;
+  color: var(--fg-muted);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: var(--mono);
+  font-size: var(--fs-base);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.copyprompt__copy:hover { color: var(--fg); border-color: #3a3a40; }
+.copyprompt__copy.is-copied {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-fade);
+}
+
+@media (max-width: 600px) {
+  .copyprompt {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .copyprompt__copy {
+    align-self: center;
+    padding: 10px 36px;
+  }
+}

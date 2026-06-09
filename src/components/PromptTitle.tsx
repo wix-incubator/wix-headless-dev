@@ -22,7 +22,12 @@ const AGENTS = [
 const HOLD_MS = 2200;
 const FADE_MS = 240;
 
-export default function PromptTitle() {
+interface PromptTitleProps {
+  /** Lead-in text before the cycling agent name. */
+  lead?: string;
+}
+
+export default function PromptTitle({ lead = "Try this prompt with" }: PromptTitleProps) {
   const [i, setI] = useState(0);
   const [visible, setVisible] = useState(true);
 
@@ -51,7 +56,7 @@ export default function PromptTitle() {
 
   return (
     <h2 className="kicker prompt-title">
-      Try this prompt with{" "}
+      {lead}{" "}
       <span
         className={`prompt-title__agent ${visible ? "is-visible" : ""}`}
         style={{ backgroundImage: agent.gradient }}

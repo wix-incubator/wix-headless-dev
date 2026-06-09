@@ -4,16 +4,9 @@ import XRayLayer from "../components/xray/Layer.tsx";
 
 const SITE_URL = "https://www.wix-headless.dev";
 const {
-	title = "Build a Real Business with AI | Wix Headless",
-	description = "Headless commerce, bookings, CMS, identity — agent-wired, prompt-deep. Drop one prompt into any coding agent and ship a business, not a demo.",
-	ogTitle = "Build anything. Wix runs the business behind it.",
-	ogDescription = "Headless commerce, bookings, CMS, identity — agent-wired, prompt-deep.",
-	image = "/og-image.png",
-	imageAlt = "Wix Headless — Build anything. Wix runs the business behind it.",
 	canonical,
 	xray = true,
 } = Astro.props;
-const absoluteImage = image.startsWith("http") ? image : SITE_URL + image;
 const ogUrl = canonical ?? SITE_URL + "/";
 ---
 <!doctype html>

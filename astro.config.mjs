@@ -9,6 +9,7 @@ const isBuild = process.env.NODE_ENV == "production";
 
 // https://astro.build/config
 export default defineConfig({
+  site: "https://www.wix-headless.dev",
   output: "server",
   integrations: [wix(), wixPages(), react()],
   security: { checkOrigin: false },

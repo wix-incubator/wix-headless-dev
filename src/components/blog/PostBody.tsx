@@ -1,5 +1,5 @@
 import "./ricos-ssr-shim";
-import { RicosViewer, pluginImageViewer, pluginLinkViewer } from "@wix/ricos";
+import { RicosViewer, pluginImageViewer, pluginLinkViewer, pluginVideoViewer } from "@wix/ricos";
 import "@wix/ricos/css/ricos-viewer.global.inject";
 import "@wix/ricos/css/all-plugins-viewer.css";
 
@@ -21,7 +21,7 @@ export default function PostBody({ content, fallback }: Props) {
     <div className="post-body">
       <RicosViewer
         content={content}
-        plugins={[pluginImageViewer(), pluginLinkViewer()]}
+        plugins={[pluginImageViewer(), pluginLinkViewer(), pluginVideoViewer()]}
         theme={{ colorPalette: { format: 'color', textColor: "#f5f5f7" } }} />
     </div>
   );

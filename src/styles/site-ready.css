@@ -25,8 +25,7 @@
   padding: clamp(48px, 12vh, 110px) 0;
 }
 .ready__error .kicker { margin-bottom: 0; color: var(--accent); }
-.ready__cta--error { margin-top: 8px; }
-.ready__cta--error .ready__cta-box { flex: 0 0 auto; }
+.ready__cta--error { margin-top: 8px; flex-wrap: wrap; }
 
 /* ----- Hero / success header -----
    Mirrors .bento__hero: neutral border, a single faint top-corner wash, no
@@ -57,47 +56,58 @@
 }
 
 /* ----- CTA row -----
-   The three next-step actions sit in their own row below the success block:
-   two neutral boxes (dashboard, visit) sized to content, then the highlighted
-   "continue" box filling the rest. align-items: stretch keeps all three the
-   same height (the continue box, being tallest, sets it). */
+   Left: a solid "Visit your site" primary + an outlined "Open dashboard".
+   Pushed to the right: the highlighted "Continue building" box (the main next
+   step). align-items: stretch keeps the left buttons the box's height. */
 .ready__cta {
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
   align-items: stretch;
+  justify-content: space-between;
+  gap: 16px;
 }
-/* Neutral box — the page's "regular" surface, same vocabulary as the steps
-   block (.block): bg-card on a subtle border, brightening on hover. */
-.ready__cta-box {
-  flex: 1;
+.ready__cta-actions {
   display: flex;
+  gap: 12px;
+}
+/* Secondary buttons (Visit / Open dashboard): the original look — dashed accent
+   border on a card surface, --fg text, brightening to the accent on hover. The
+   continue box is the primary: solid accent border + glow. */
+.ready__btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 18px 24px;
-  border: 1px dashed rgba(250, 255, 0, 0.5);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius);
   background: var(--bg-card);
   color: var(--fg);
   font-size: var(--fs-md);
   font-weight: 600;
   letter-spacing: -0.01em;
+  white-space: nowrap;
   text-decoration: none;
   transition: border-color 0.15s ease;
 }
-.ready__cta-box:hover { border-color: rgba(250, 255, 0, 0.7); }
+.ready__btn:hover { border-color: var(--fg-faint); }
+/* Primary (Visit your site): a crisp white border — a notch up from the neutral
+   secondary, while the continue box keeps the yellow glow as the lead. */
+.ready__btn--primary {
+  border-color: var(--fg);
+}
+.ready__btn--primary:hover { border-color: var(--fg); }
 
 /* ----- "Continue building" — the highlighted CTA -----
-   The third box in the row, filling the remaining width. Solid yellow border +
-   glow (the prompt-box vocabulary) so it reads as the main next step.
-   Anchors to #continue. */
+   Sits at the right of the row; solid accent border + glow (the prompt-box
+   vocabulary) so it reads as the main next step. Anchors to #continue. */
 .ready__continue {
-  flex: 2;
+  flex: 0 1 auto;
   min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding: 18px clamp(24px, 3.5vw, 32px);
+  gap: 18px;
+  padding: 14px clamp(20px, 2.5vw, 28px);
   border: 1px solid rgba(250, 255, 0, 0.45);
   border-radius: var(--radius);
   background:
@@ -109,12 +119,7 @@
   text-decoration: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.ready__continue:hover {
-  border-color: rgba(250, 255, 0, 0.65);
-  box-shadow:
-    0 0 0 4px rgba(250, 255, 0, 0.06),
-    0 0 50px -12px rgba(250, 255, 0, 0.24);
-}
+.ready__continue:hover { border-color: var(--accent); }
 .ready__continue-title {
   font-size: var(--fs-md);
   font-weight: 600;
@@ -124,17 +129,17 @@
 }
 .ready__continue-arrow {
   flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   color: var(--fg-muted);
-  transition: color 0.18s ease;
+  transition: transform 0.18s ease, color 0.18s ease;
 }
-.ready__continue:hover .ready__continue-arrow { color: var(--fg); }
+.ready__continue:hover .ready__continue-arrow { transform: translateX(3px); color: var(--fg); }
 
-/* Narrow screens: stack the three CTAs full-width. */
+/* Narrow screens: stack the CTAs full-width. */
 @media (max-width: 700px) {
-  .ready__cta { flex-direction: column; }
-  .ready__cta-box { justify-content: flex-start; }
+  .ready__cta { flex-direction: column; align-items: stretch; }
+  .ready__cta-actions { flex-direction: column; }
 }
 
 /* ----- Live preview (faux browser chrome around the iframe) ----- */
@@ -202,19 +207,54 @@
   font-family: var(--mono);
   font-size: var(--fs-xs);
   text-transform: lowercase;
-  color: var(--fg-faint);
+  color: var(--fg);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.browser__domain:hover { text-decoration: underline; }
+
+/* ----- Setup steps -----
+   Reuse the home page's .bento__steps / .steps ribbon, with the steps pushed
+   left and a "Read the full guide" docs link on the right of the row. */
+.ready__steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.ready__steps .steps {
+  flex: 1;
+  justify-content: flex-start;
+}
+.ready__guide {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  font-family: var(--mono);
+  font-size: var(--fs-base);
+  color: var(--fg-muted);
   text-decoration: none;
   white-space: nowrap;
   transition: color 0.15s ease;
 }
-.browser__domain:hover { color: var(--fg); }
-@media (max-width: 600px) {
-  /* The address itself is the priority on narrow bars; drop the nudge. */
-  .browser__domain { display: none; }
+.ready__guide:hover { color: var(--fg); }
+.ready__guide svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
 }
-
-/* Setup steps reuse the home page's .bento__steps / .steps ribbon from
-   welcome.css — no extra rules needed here. */
+@media (max-width: 640px) {
+  /* Stack: steps ribbon (already column on mobile) then the guide link below,
+     separated by the same hairline the steps use. */
+  .ready__steps { flex-direction: column; align-items: stretch; gap: 0; }
+  .ready__steps .steps { flex: none; }
+  .ready__guide {
+    padding-top: 16px;
+    border-top: 1px solid var(--border-strong);
+  }
+}
 
 /* Smooth-scroll for the "Continue building" → #continue anchor, with a little
    headroom so the section title isn't flush against the viewport top. */

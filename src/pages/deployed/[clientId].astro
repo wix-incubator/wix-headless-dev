@@ -123,9 +123,9 @@ const description = notFound
             Double-check the link from your coding platform — or start a fresh
             build from the homepage.
           </p>
-          <div class="ready__cta ready__cta--error">
-            <a class="ready__cta-box" href="/">Back to homepage</a>
-            <a class="ready__cta-box" href="https://dev.wix.com/docs/go-headless" target="_blank" rel="noreferrer">
+          <div class="ready__cta-actions ready__cta--error">
+            <a class="ready__btn ready__btn--primary" href="/">Back to homepage</a>
+            <a class="ready__btn" href="https://dev.wix.com/docs/go-headless" target="_blank" rel="noreferrer">
               Read the docs
             </a>
           </div>
@@ -137,25 +137,27 @@ const description = notFound
           <h1 class="ready__title">{headline}</h1>
           <p class="ready__sub">
             Your design is now a real, hosted website — Wix runs the hosting,
-            SSL, global CDN, and a full dashboard for you, so there's nothing to
-            deploy or maintain. It's already wired to production business APIs
-            for commerce, bookings, content, and members, ready for you to turn
-            on whenever you need them.
+            SSL, global CDN, and a full management dashboard, nothing to deploy
+            or maintain. It's already wired to production business APIs for
+            commerce, services, CMS, members, and more. Ask your AI agent to
+            activate the ones you need.
           </p>
         </header>
 
         <section class="ready__cta" aria-label="Next steps">
-          <a class="ready__cta-box" href={dashboardUrl} target="_blank" rel="noreferrer">
-            Open dashboard
-          </a>
-          <a class="ready__cta-box" href={siteUrl} target="_blank" rel="noreferrer">
-            Visit your site
-          </a>
+          <div class="ready__cta-actions">
+            <a class="ready__btn" href={siteUrl} target="_blank" rel="noreferrer">
+              Visit your site
+            </a>
+            <a class="ready__btn" href={dashboardUrl} target="_blank" rel="noreferrer">
+              Open dashboard
+            </a>
+          </div>
           <a class="ready__continue" href="#continue">
             <span class="ready__continue-title">Continue building with your AI agent</span>
-            <svg class="ready__continue-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M8 2.5v11" />
-              <path d="M3.5 9L8 13.5L12.5 9" />
+            <svg class="ready__continue-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 8h10" />
+              <path d="M9 4l4 4-4 4" />
             </svg>
           </a>
         </section>
@@ -197,7 +199,7 @@ const description = notFound
           </section>
         </div>
 
-        <section class="bento__steps block" aria-label="How it works">
+        <section class="bento__steps block ready__steps" aria-label="How it works">
           <ol class="steps">
             <li class="step">
               <span class="step__num">01</span>
@@ -215,6 +217,14 @@ const description = notFound
               <span class="step__detail">on a real Wix <a href="/skill.md">backend</a></span>
             </li>
           </ol>
+          <a class="ready__guide" href="https://dev.wix.com/docs/go-headless" target="_blank" rel="noreferrer">
+            Read the full guide
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3" />
+              <path d="M9 2h5v5" />
+              <path d="M14 2L7.5 8.5" />
+            </svg>
+          </a>
         </section>
       </main>
     )}

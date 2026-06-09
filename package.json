@@ -14,7 +14,7 @@
     "skills": "wix skills"
   },
   "dependencies": {
-    "@wix/astro": "^2.47.0",
+    "@wix/astro": "^2.52.0",
     "@wix/astro-pages": "^2.0.4",
     "@wix/blog": "^1.0.606",
     "@wix/bookings": "^1.0.1386",

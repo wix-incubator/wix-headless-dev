@@ -18,48 +18,22 @@ If the user gave you a Wix download URL, or you unzipped a folder containing an 
 
 1. **Unzip into the working directory.** You now have \`index.html\` (the design) and \`wix.config.json\`. That config holds the real \`appId\` + \`siteId\` of the user's already-live site — you must preserve both. **Never** run \`@wix/new\` / \`npm create @wix/new\` here: it would mint a brand-new site and orphan theirs.
 
-2. **Lay the blank headless template over the folder.** Copy the official template — it ships **no** \`wix.config.json\` of its own, so it composes cleanly with the one you already have:
+2. **Lay the release-ready headless template over the folder.** Copy the official \`astro/headless-blank\` template — it ships **no** \`wix.config.json\` of its own, so it composes cleanly with the one you already have:
 
    \`\`\`bash
-   npx degit wix/headless-templates/astro/blank . --force
+   npx degit wix/headless-templates/astro/headless-blank . --force
    \`\`\`
 
-   This adds \`package.json\`, \`astro.config.mjs\`, \`tsconfig.json\`, \`src/\`, \`public/\`, etc. \`--force\` only permits writing into the non-empty folder; it does not touch your \`index.html\` or \`wix.config.json\` (the template doesn't contain either).
+   This adds \`package.json\`, \`astro.config.mjs\`, \`tsconfig.json\`, \`src/\`, \`public/\`, etc. Its \`astro.config.mjs\` already declares \`output: "server"\` + the \`@wix/cloud-provider-fetch-adapter\` build adapter (and the deps are in its \`package.json\`), so \`wix build\` / \`wix release\` work with **no patching**. \`--force\` only permits writing into the non-empty folder; it does not touch your \`index.html\` or \`wix.config.json\` (the template contains neither). Use \`astro/headless-blank\`, **not** \`astro/blank\` — the latter omits the adapter (it relies on the Wix CLI to inject it) and would fail \`wix build\` with \`NoAdapterInstalled\` when used this way.
 
 3. **Slim \`wix.config.json\` to the headless shape.** A headless Astro project's config is just \`{ "appId": "…", "siteId": "…" }\`. Keep those two values from the download and **remove** \`projectType\` and the \`site\` block, so the Astro toolchain treats it as a headless app bound to the same site.
 
-4. **Bring the template up to the full headless build setup.** The public \`astro/blank\` template is leaner than what the CLI scaffolds — it has **no server adapter**, so \`wix dev\` works but \`wix build\` / \`wix release\` fail with \`NoAdapterInstalled\`. Fix it once, now:
-   - Replace \`astro.config.mjs\` with:
-
-     \`\`\`js
-     // @ts-check
-     import { defineConfig } from 'astro/config';
-     import wix from "@wix/astro";
-     import wixPages from "@wix/astro-pages";
-     import react from "@astrojs/react";
-     import cloudProviderFetchAdapter from "@wix/cloud-provider-fetch-adapter";
-
-     const isBuild = process.env.NODE_ENV == "production";
-
-     export default defineConfig({
-       output: "server",
-       integrations: [wix(), wixPages(), react()],
-       security: { checkOrigin: false },
-       image: { domains: ["static.wixstatic.com"] },
-       devToolbar: { enabled: false },
-       ...(isBuild && { adapter: cloudProviderFetchAdapter({}) })
-     });
-     \`\`\`
-
-   - Add the dependencies the adapter/config need: \`npm i @astrojs/react react react-dom @wix/cloud-provider-fetch-adapter @astrojs/cloudflare @wix/cli @types/react @types/react-dom\`.
-   - Point the npm scripts at the CLI so the project behaves like a real scaffold: \`dev: wix dev\`, \`build: wix build\`, \`preview: wix preview\`, \`release: wix release\`, \`skills: wix skills\`, \`env: wix env\`, \`generate: wix generate\`.
-
-5. **Move the design in, intact.** Make it the home page **through Astro** (so the Wix runtime is injected and the SDK works client-side) — do **not** rewrite it into components or another framework:
+4. **Move the design in, intact.** Make it the home page **through Astro** (so the Wix runtime is injected and the SDK works client-side) — do **not** rewrite it into components or another framework:
    - Carry the design's \`lang\`/\`dir\` (e.g. \`lang="he" dir="rtl"\`) onto the \`<html>\` tag, and move its \`<head>\` font \`<link>\`s and \`<style>\` block into \`src/layouts/Layout.astro\`. **Mark that \`<style>\` \`is:inline\`** so its CSS (the \`{ }\` braces especially) passes through globally instead of being scoped or parsed as Astro expressions.
-   - Put the \`<body>\` markup (e.g. \`<div id="root"></div>\`) into \`src/pages/index.astro\`, replacing the template's \`<Welcome />\`, and delete \`src/components/Welcome.astro\`.
+   - Put the \`<body>\` markup (e.g. \`<div id="root"></div>\`) into \`src/pages/index.astro\`, replacing the template's placeholder content.
    - **Mark every \`<script>\` from the design \`is:inline\`** (the React / Babel CDN tags and the \`type="text/babel"\` blocks) so Astro passes them through verbatim instead of bundling them.
 
-6. **Install, bind to the site, verify, and release the working site:**
+5. **Install, bind to the site, verify, and release the working site:**
 
    \`\`\`bash
    npm install
@@ -73,9 +47,9 @@ If the user gave you a Wix download URL, or you unzipped a folder containing an 
    wix build && wix release   # in that order — release reads wix build's output
    \`\`\`
 
-7. **Stop here and report success — the base site is done.** This is a complete milestone: the design is now a real, hosted Wix site. Tell the user in a short, upbeat message that **it's live (give the URL) and the project + design are in place**, and that you can run it locally with \`wix dev\`. **Do not silently roll on into feature-wiring** — connecting a Business Solution is a separate, slower step, so it must be the user's choice (the next step).
+6. **Stop here and report success — the base site is done.** This is a complete milestone: the design is now a real, hosted Wix site. Tell the user in a short, upbeat message that **it's live (give the URL) and the project + design are in place**, and that you can run it locally with \`wix dev\`. **Do not silently roll on into feature-wiring** — connecting a Business Solution is a separate, slower step, so it must be the user's choice (the next step).
 
-8. **Then offer to connect the solution the design needs — as a follow-up question.** Identify the Business Solution(s) the design implies — booking/calendar UI → **Bookings**; products/cart/checkout → **Stores**; contact/lead form → **Forms/CMS**; login or members area → **Members** (usually just one; only what the design actually shows — never the full set "just in case"). Then **ask the user whether to connect it now**, e.g.: *"Your site has a booking form — want me to connect it to Wix Bookings so real bookings land in your dashboard? It takes a few minutes."* **Only if they say yes**, continue with **Install the skills** below and wire that solution. If they decline, you're done — the base site already works.
+7. **Then offer to connect the solution the design needs — as a follow-up question.** Identify the Business Solution(s) the design implies — booking/calendar UI → **Bookings**; products/cart/checkout → **Stores**; contact/lead form → **Forms/CMS**; login or members area → **Members** (usually just one; only what the design actually shows — never the full set "just in case"). Then **ask the user whether to connect it now**, e.g.: *"Your site has a booking form — want me to connect it to Wix Bookings so real bookings land in your dashboard? It takes a few minutes."* **Only if they say yes**, continue with **Install the skills** below and wire that solution. If they decline, you're done — the base site already works.
 
    When you do wire it:
    - **The design's feature is a front-end mock** — a submit handler that flips to a local "success" screen and calls no backend. Installing the app is **not** enough; **replace the mock handler with a real Wix SDK call**, and **verify a real record appears** in the dashboard (e.g. a test booking) before calling it done. A mock that shows "thanks, we saved your details!" while saving nothing is the worst outcome — it looks like it works but nothing reaches the dashboard.

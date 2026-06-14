@@ -38,6 +38,7 @@ If the user gave you a Wix download URL, or you unzipped a folder containing an 
 
    It handles **both** export formats — a base64-gzipped \`__bundler\` pack **or** a plain self-contained HTML with inline \`type="text/babel"\` blocks — and emits: the design split into \`src/design/NN-<role>.jsx\` modules, \`src/layouts/Layout.astro\` (head + fonts + CDN React/Babel), \`public/fonts/*\` (pack only), and a thin \`src/pages/index.astro\` that \`import\`s the modules with \`?raw\` and injects them. The runtime is unchanged (CDN React + in-browser Babel) and the look is identical — the developer just gets a readable project instead of an ~80 KB page. Verified on both a packed storefront (7 modules) and a single-file site (4 blocks).
    - **What it does (so you can adapt for an unusual design):** restore React/ReactDOM/Babel as CDN \`<script>\` tags; split the app along the design's *own* boundaries (the pack's modules, or the existing \`text/babel\` blocks); pack modules → **one combined** \`text/babel\` bundle (they share top-level \`const\`s), plain blocks → **one script each** (they share scope via global \`function\`s); mark only **real top-level** \`<style>\`/\`<script>\` \`is:inline\` — never the app's JS/JSX (a JSX \`<style>{css}</style>\` would corrupt to \`<style is:inline>\`); carry \`lang\`/\`dir\` onto \`<html>\`; name each file by role/heading (definitional signals before any dash heuristic, so a directive comment never becomes the filename).
+   - **If Claude Design changed its format and the utility can't cope — fall back, don't ship junk.** The utility fails loud with \`DESIGN_FORMAT_UNRECOGNIZED\` when it sees neither a \`__bundler\` pack nor \`text/babel\` blocks (or a pack whose manifest no longer parses). On that error — **or** if it "succeeds" but the page doesn't render (step 5) — decode this one **from first principles** using the recipe above (inspect \`index.html\`, find where the real markup/JS/fonts live, restore the libs, split + embed), re-verify, and **report the new format** (so the shared utility is fixed once for everyone, instead of every run re-deriving it). Re-running an improvised decoder per project is the thing to avoid; the verify gate below is what tells you whether you're done.
 
 5. **Install, bind to the site, verify, and release the working site:**
 
@@ -47,7 +48,9 @@ If the user gave you a Wix download URL, or you unzipped a folder containing an 
    wix dev        # serve and confirm the design renders
    \`\`\`
 
-   A successful \`wix env pull\` **proves** the slimmed config points at the user's existing site. If it (or \`wix dev\`) cannot bind the site, **stop and tell the user** — do not create a new one to work around it. Once the design renders, publish the base site:
+   A successful \`wix env pull\` **proves** the slimmed config points at the user's existing site. If it (or \`wix dev\`) cannot bind the site, **stop and tell the user** — do not create a new one to work around it.
+
+   **Render gate (do not skip — this is the format-drift safety net).** Open the served page and confirm the design **actually renders**: the app mounted and real content is visible (e.g. \`#root\` has children; expected text/sections appear) — *not* merely that the server returns 200. A blank page / empty \`#root\` with no server error means the embed didn't take (almost always a Claude-Design format change the decoder mishandled) — **go back to step 4's fallback** before continuing. Only once it renders, publish the base site:
 
    \`\`\`bash
    wix build && wix release   # in that order — release reads wix build's output

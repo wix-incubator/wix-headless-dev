@@ -45,12 +45,19 @@ const isPack = html.includes('<script type="__bundler/manifest">');
 let template, fonts = 0;
 const appModules = [];
 
+// Fail loudly + specifically on format drift, so the caller knows to fall back
+// to a first-principles decode (and report the new format) rather than ship a
+// broken project. See the skill's step-4 recipe.
+const drift = (what) => { throw new Error(`DESIGN_FORMAT_UNRECOGNIZED: ${what}. The Claude-Design export format may have changed — decode from first principles (skill step 4) and report the new format so this utility can be updated.`); };
+
+let manifest, bytes;
 if (isPack) {
   // ── bundler pack: decode template + manifest ───────────────────────────────
-  const block = (t) => { const m = html.indexOf(`<script type="__bundler/${t}">`); const s = html.indexOf(">", m) + 1; return html.slice(s, html.indexOf(S_END, s)); };
-  const manifest = JSON.parse(block("manifest"));
-  template = JSON.parse(block("template"));
-  const bytes = (id) => { const r = manifest[id]; let b = Buffer.from(r.data, "base64"); if (r.compressed) b = zlib.gunzipSync(b); return b; };
+  const block = (t) => { const m = html.indexOf(`<script type="__bundler/${t}">`); if (m < 0) return null; const s = html.indexOf(">", m) + 1; return html.slice(s, html.indexOf(S_END, s)); };
+  try { manifest = JSON.parse(block("manifest")); template = JSON.parse(block("template")); }
+  catch { drift("recognized a __bundler pack but its manifest/template no longer parse as JSON"); }
+  if (!template) drift("__bundler manifest present but no __bundler/template block");
+  bytes = (id) => { const r = manifest[id]; let b = Buffer.from(r.data, "base64"); if (r.compressed) b = zlib.gunzipSync(b); return b; };
 
   let reactVer = "18.3.1";
   for (const id in manifest) { if (manifest[id].mime !== "text/javascript") continue; const s = bytes(id).toString("utf8"); if (/react\.development\.js/.test(s.slice(0, 200))) { const mm = s.match(/exports\.version\s*=\s*["']([\d.]+)["']/); if (mm) reactVer = mm[1]; } }
@@ -83,7 +90,7 @@ if (isPack) {
   template = template.replace(/<script\b[^>]*type="text\/babel"[^>]*>([\s\S]*?)<\/script>/g, (m, body) => { appModules.push(body.replace(/^\n+|\n+$/g, "")); return `__SLOT_${k++}__`; });
 }
 
-if (!appModules.length) throw new Error("no app modules found (no __bundler pack and no <script type=\"text/babel\"> blocks)");
+if (!appModules.length) drift("found no app code — neither a __bundler pack nor any <script type=\"text/babel\"> blocks");
 
 // write each module to src/design/NN-<role>.jsx
 const designDir = path.join(proj, "src/design");

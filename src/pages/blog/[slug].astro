@@ -90,7 +90,7 @@ const initialLikes = postMetrics?.likes ?? 0;
 const initialViews = postMetrics?.views ?? 0;
 ---
 
-<Layout canonical={canonicalUrl}>
+<Layout>
   {seoTagsServiceConfig && (
     <SEO.Tags seoTagsServiceConfig={seoTagsServiceConfig} slot="seo-tags" />
   )}

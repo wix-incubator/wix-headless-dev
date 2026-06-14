@@ -4,10 +4,8 @@ import XRayLayer from "../components/xray/Layer.tsx";
 
 const SITE_URL = "https://www.wix-headless.dev";
 const {
-	canonical,
 	xray = true,
 } = Astro.props;
-const ogUrl = canonical ?? SITE_URL + "/";
 ---
 <!doctype html>
 <html lang="en">
@@ -19,9 +17,7 @@ const ogUrl = canonical ?? SITE_URL + "/";
 		<link rel="apple-touch-icon" href="/icon.png" />
 		<meta name="generator" content={Astro.generator} />
 		<meta name="author" content="Wix.com, Inc." />
-		{canonical && <link rel="canonical" href={canonical} />}
-		<meta property="og:url" content={ogUrl} />
-		<meta name="twitter:site" content="@Wix" />
+<meta name="twitter:site" content="@Wix" />
 		<meta name="theme-color" content="#0a0a0a" />
 		<script type="application/ld+json" set:html={JSON.stringify({
 			"@context": "https://schema.org",

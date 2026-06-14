@@ -30,13 +30,18 @@ let author: members.Member | null = null;
 let seoTagsServiceConfig: Awaited<ReturnType<typeof loadSEOTagsServiceConfig>> | null = null;
 
 if (slug) {
+  // Build the page URL from the configured `site` (https) rather than
+  // Astro.url, whose protocol can be http behind a proxy/SSR and would
+  // otherwise leak into the canonical/OG tags.
+  const httpsPageUrl = new URL(Astro.url.pathname, Astro.site).href;
+
   try {
     const [res, seoConfig] = await Promise.all([
       posts.getPostBySlug(slug, {
         fieldsets: ["URL", "METRICS", "RICH_CONTENT", "CONTENT_TEXT"],
       }),
       loadSEOTagsServiceConfig({
-        pageUrl: Astro.url.href,
+        pageUrl: httpsPageUrl,
         itemType: seoTags.ItemType.BLOG_POST,
         itemData: { slug },
       }),
@@ -80,7 +85,7 @@ const publishedDate = post?.firstPublishedDate
 
 const heroUrl = post?.media?.embedMedia?.thumbnail?.url ?? null;
 
-const canonicalUrl = `https://www.wix-headless.dev/blog/${post?.slug ?? slug}`;
+const canonicalUrl = new URL(`/blog/${post?.slug ?? slug}`, Astro.site).href;
 const initialLikes = postMetrics?.likes ?? 0;
 const initialViews = postMetrics?.views ?? 0;
 ---

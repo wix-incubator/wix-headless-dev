@@ -102,8 +102,15 @@ const files = appModules.map((src, i) => { const name = `${String(i + 1).padStar
 // are plain text, so the app's JS/JSX is never touched by this regex).
 const inlineTags = (s) => s.replace(/<style(\s|>)/g, "<style is:inline$1").replace(/<script(\s|>)/g, "<script is:inline$1");
 const headInner = inlineTags(template.slice(template.indexOf("<head>") + 6, template.indexOf("</head>")));
-const bodyOpen = template.match(/<body[^>]*>/)[0];
-let bodyInner = inlineTags(template.slice(template.indexOf(bodyOpen) + bodyOpen.length, template.indexOf("</body>")));
+const bodyMatch = template.match(/<body\b([^>]*)>/i);
+const bodyAttrs = bodyMatch?.[1] || "";
+const lowerTemplate = template.toLowerCase();
+const headEnd = lowerTemplate.indexOf("</head>");
+const bodyStart = bodyMatch ? template.indexOf(bodyMatch[0]) + bodyMatch[0].length : (headEnd >= 0 ? headEnd + "</head>".length : 0);
+const bodyEnd = lowerTemplate.lastIndexOf("</body>");
+const htmlEnd = lowerTemplate.lastIndexOf("</html>");
+const bodyContentEnd = bodyEnd >= 0 ? bodyEnd : (htmlEnd >= 0 ? htmlEnd : undefined);
+let bodyInner = inlineTags(template.slice(bodyStart, bodyContentEnd));
 const htmlTag = (template.match(/<html[^>]*>/) || ['<html lang="en">'])[0];
 
 // inject the modules. Pack → one combined bundle; plain → one script per module.
@@ -114,7 +121,7 @@ if (isPack) {
 }
 
 fs.writeFileSync(path.join(proj, "src/layouts/Layout.astro"),
-  `---\n---\n<!doctype html>\n${htmlTag}\n<head>\n<meta name="generator" content={Astro.generator} />\n<link rel="icon" type="image/svg+xml" href="/favicon.svg" />\n${headInner}\n</head>\n<body>\n<slot />\n</body>\n</html>\n`);
+  `---\n---\n<!doctype html>\n${htmlTag}\n<head>\n<meta name="generator" content={Astro.generator} />\n<link rel="icon" type="image/svg+xml" href="/favicon.svg" />\n${headInner}\n</head>\n<body${bodyAttrs}>\n<slot />\n</body>\n</html>\n`);
 
 const imports = files.map((f, i) => `import m${i} from "../design/${f}?raw";`).join("\n");
 const bundleLine = isPack ? `const appBundle = [${files.map((_, i) => `m${i}`).join(", ")}].join("\\n;\\n");\n` : "";

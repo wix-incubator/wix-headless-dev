@@ -86,12 +86,12 @@ const headline = notFound ? "We couldn't find that site" : "Your site is live";
 // framing words grayed (tone "muted"), the host accent-styled (tone "host").
 const promptDisplayLines = [
   [
-    { text: "Build ", tone: "muted" },
-    { text: "on what I started with Wix Headless." },
+    { text: "Pick up ", tone: "muted" },
+    { text: "where I left off with Wix Headless." },
   ],
   [
     { text: "Download ", tone: "muted" },
-    { text: "my project files and build out its features" },
+    { text: "my design and switch on only the features it needs" },
   ],
   [
     { text: "Using ", tone: "muted" },
@@ -100,7 +100,7 @@ const promptDisplayLines = [
 ];
 const promptCopyText = notFound
   ? ""
-  : `Help me keep building my live Wix Headless site. Download my project files from ${downloadUrl}, then follow the Wix Headless skill at wix-headless.dev/skill.md to implement the features it needs — storefront, bookings, CMS, members, and more — wired to a real Wix backend.`;
+  : `Help me keep building my Wix Headless site — download my project from ${downloadUrl} and follow the guide at wix-headless.dev/skill.md.`;
 
 const description = notFound
   ? "We couldn't find that site. The link may have expired or the site isn't ready yet."

@@ -37,26 +37,24 @@ If that errors (Node not installed) or prints below 20.11, install/upgrade Node 
 
 Download the bootstrap script, then run it in the mode that matches the request. It verifies the CLI, handles login, sets up the project, and releases — emitting **one JSON event per line** on stdout. **Run it as a background/streaming process and relay its events to the user** (especially the login device code), then read the final \`done\` event for the links.
 
+Run it **straight from the URL so no helper file is left behind**, passing the mode's \`<args>\` from below:
+
 \`\`\`bash
-# macOS/Linux curl -sO https://wix-headless.dev/bootstrap.mjs
-# Windows PowerShell: iwr https://wix-headless.dev/bootstrap.mjs -OutFile bootstrap.mjs
+# macOS / Linux / WSL — pipe to node (args go after \`node -\`):
+curl -fsSL https://wix-headless.dev/bootstrap.mjs | node - <args>
+# Windows PowerShell — download, run, then delete:
+iwr https://wix-headless.dev/bootstrap.mjs -OutFile bootstrap.mjs; node bootstrap.mjs <args>; del bootstrap.mjs
 \`\`\`
 
-**Pick the mode:**
+**Pick the \`<args>\`:**
 
 - **Continuing a \`/deployed\` site** — the user gave a Wix download URL, or you're already in a folder with \`wix.config.json\`. This releases the existing design **as-is** for the fastest path to live:
 
-  \`\`\`bash
-  node bootstrap.mjs --download-url "<the download URL from the prompt>"
-  # …or, if the folder is already unzipped:
-  node bootstrap.mjs --dir .
-  \`\`\`
+  \`--download-url "<the download URL from the prompt>"\`  — or \`--dir .\` if the folder is already unzipped.
 
 - **Starting from scratch** — a prompt with no existing project (empty directory). Derive a human **business name** and a kebab **folder name** from the prompt, then:
 
-  \`\`\`bash
-  node bootstrap.mjs --new --business-name "<Brand>" --folder-name "<brand-slug>"
-  \`\`\`
+  \`--new --business-name "<Brand>" --folder-name "<brand-slug>"\`
 
   \`<business-name>\` must contain at least one letter/number; \`<folder-name>\` must match \`^[a-z0-9][a-z0-9-]*$\` (e.g. \`Acme Bakery\` → \`acme-bakery\`). Ask the user if you can't derive a sensible name.
 
@@ -69,12 +67,15 @@ Download the bootstrap script, then run it in the mode that matches the request.
 | \`logged_in\` / \`success\` | Login done — continue. |
 | \`download_failed\` | If the URL needs an authenticated session, ask the user to download the zip in a browser, then re-run with \`--dir <unzipped folder>\`. |
 | \`downloading\` / \`extracted\` / \`prepared\` / \`scaffolding\` / \`building\` / \`releasing\` | Progress — relay briefly. |
-| \`done\` (\`liveUrl\`, \`dashboardUrl\`, \`siteId\`, \`projectDir\`) | Success → go to Phase 2. |
+| \`verified\` (\`httpStatus\`, \`ok\`) | Post-release reachability check — relay briefly (e.g. "site responding ✓"). |
+| \`done\` (\`liveUrl\`, \`dashboardUrl\`, \`siteId\`, \`projectDir\`, \`openFile\`, \`guideFile\`) | Success → go to Phase 2. |
 | any \`*_failed\` you can't resolve | Stop and show the user the \`detail\`. **Do not** improvise a parallel setup by hand. |
 
 ## Phase 2 — Report the live site
 
-On \`done\`, tell the user in a short, upbeat message: the site is **live** (give \`liveUrl\`), the **dashboard** is at \`dashboardUrl\`, and the project is set up locally (\`projectDir\`). This is a real milestone — let them see it. **Do not silently roll on into feature-wiring**: connecting a Business Solution is a separate, slower step, so it must be the user's choice (next phase).
+On \`done\`, tell the user in a short, upbeat message: the site is **live** (give \`liveUrl\`, confirmed by the \`verified\` event) and the **dashboard** is at \`dashboardUrl\`. **Print the local path prominently as a clickable link** — show \`projectDir\` and link \`openFile\` (a representative source file) so the user can jump straight in: in editor-integrated terminals (VS Code, Cursor, JetBrains) and the chat UI these are Cmd/Ctrl-clickable, and clicking the *file* opens it in the editor (a bare folder tends to open the file manager instead). A local guide (\`guideFile\` — \`README.md\` / \`GETTING_STARTED.md\`) with next steps, run/release commands, and verify steps was written into the project; point them at it.
+
+Then, **for a \`/deployed\` static site, offer the Astro upgrade** — ask whether to turn it into a developer-friendly Astro project, in one sentence noting it's **recommended** for continued development (real source files + the Wix SDK, which connecting Wix Stores / Bookings requires). Convert only if they say yes (the steps are Phase 3a). This is a real milestone — let them see it first; **do not silently roll on into feature-wiring** — it's the user's choice.
 
 ## Phase 3 — Connect a Business Solution (agentic)
 

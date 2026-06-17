@@ -81,7 +81,24 @@ Then, **for a \`/deployed\` static site, offer the Astro upgrade** — ask wheth
 
 Identify the solution the design/prompt implies — booking/calendar UI → **Bookings**; products/cart/checkout → **Stores**; contact/lead form → **Forms/CMS**. Usually **just one**; only what the design actually shows — never the full set "just in case". Then **ask the user whether to connect it now**, e.g.: *"Your site has a booking form — want me to connect it to Wix Bookings so real bookings land in your dashboard? It takes a few minutes."* **Only if they say yes**, continue.
 
-### 3a. Install the skills and wire the solution
+### 3a. Upgrade to an Astro project first (if you're on a static \`/deployed\` site)
+
+The \`/deployed\` bootstrap released your design as **static HTML** — great for hosting, but a server runtime + the Wix SDK (needed for Stores, Bookings, server-side reads) require a real **Astro** project. Convert in place using the **official Wix Astro template** — the same \`degit\` flow that scaffolds a new headless project:
+
+\`\`\`bash
+npx degit wix/headless-templates/astro/headless-blank . --force   # adds astro.config.mjs (output:"server" + @wix/cloud-provider-fetch-adapter), package.json, src/, public/ — leaves your index.html + wix.config.json untouched
+# slim wix.config.json to the headless shape: { "appId": "…", "siteId": "…" }  (drop projectType + the site/outputDirectory block)
+curl -fsSL https://wix-headless.dev/decode-design-pack.mjs | node - .   # splits index.html → src/design/NN-<role>.jsx + src/layouts/Layout.astro + src/pages/index.astro (no file left behind)
+npm install && wix env pull && wix build && wix release
+\`\`\`
+
+- Use \`astro/headless-blank\`, **not** \`astro/blank\` — the latter omits the build adapter and fails \`wix build\` with \`NoAdapterInstalled\`.
+- **Render gate:** open the served page and confirm the design actually renders (\`#root\` has children), not just a 200. The decoder handles both export formats (the base64-gzipped \`__bundler\` pack and plain \`text/babel\` HTML) and **fails loud** with \`DESIGN_FORMAT_UNRECOGNIZED\`; on that error — or a blank \`#root\` — decode from first principles and report the new format.
+- **WixPages-friendly (multi-view designs):** give each distinct view a real \`src/pages/<view>.astro\` route (a shared \`DesignApp.astro\` shell + \`history.pushState\` routing) so \`wixPages()\` publishes per-page SEO + real URLs — a single-page scroll site is correctly one route. For a Stores product route, key it by slug and \`export const wixMetadata = { appDefId: "1380b703-ce81-ff05-f115-39571d94dfcd", pageIdentifier: "wix.stores.sub_pages.product", identifiers: { slug: "STORES.PRODUCT.SLUG" } }\`, rendering real per-product tags with \`@wix/seo\`.
+
+Once on Astro, continue to **3b** to wire the actual solution.
+
+### 3b. Install the skills and wire the solution
 
 \`\`\`bash
 wix skills add

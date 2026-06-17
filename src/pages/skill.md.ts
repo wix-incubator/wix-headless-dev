@@ -75,15 +75,11 @@ iwr https://wix-headless.dev/bootstrap.mjs -OutFile bootstrap.mjs; node bootstra
 
 On \`done\`, tell the user in a short, upbeat message: the site is **live** (give \`liveUrl\`, confirmed by the \`verified\` event) and the **dashboard** is at \`dashboardUrl\`. **Print the local path prominently as a clickable link** — show \`projectDir\` and link \`openFile\` (a representative source file) so the user can jump straight in: in editor-integrated terminals (VS Code, Cursor, JetBrains) and the chat UI these are Cmd/Ctrl-clickable, and clicking the *file* opens it in the editor (a bare folder tends to open the file manager instead). A local guide (\`guideFile\` — \`README.md\` / \`GETTING_STARTED.md\`) with next steps, run/release commands, and verify steps was written into the project; point them at it.
 
-Then, **for a \`/deployed\` static site, offer the Astro upgrade** — ask whether to turn it into a developer-friendly Astro project, in one sentence noting it's **recommended** for continued development (real source files + the Wix SDK, which connecting Wix Stores / Bookings requires). Convert only if they say yes (the steps are Phase 3a). This is a real milestone — let them see it first; **do not silently roll on into feature-wiring** — it's the user's choice.
+This is a real milestone — let the user see it. **Do not silently roll on into feature-wiring**: the recommended next step (a developer-friendly Astro upgrade) is the user's choice — Phase 3.
 
-## Phase 3 — Connect a Business Solution (agentic)
+## Phase 3 — Offer the Astro upgrade (recommended, the user decides)
 
-Identify the solution the design/prompt implies — booking/calendar UI → **Bookings**; products/cart/checkout → **Stores**; contact/lead form → **Forms/CMS**. Usually **just one**; only what the design actually shows — never the full set "just in case". Then **ask the user whether to connect it now**, e.g.: *"Your site has a booking form — want me to connect it to Wix Bookings so real bookings land in your dashboard? It takes a few minutes."* **Only if they say yes**, continue.
-
-### 3a. Upgrade to an Astro project first (if you're on a static \`/deployed\` site)
-
-The \`/deployed\` bootstrap released your design as **static HTML** — great for hosting, but a server runtime + the Wix SDK (needed for Stores, Bookings, server-side reads) require a real **Astro** project. Convert in place using the **official Wix Astro template** — the same \`degit\` flow that scaffolds a new headless project:
+The \`/deployed\` bootstrap released your design as **static HTML** — great for hosting, but continued development, and connecting **any** Wix Business Solution (Stores, Bookings, server-side reads), needs a real **Astro** project with source files + the Wix SDK. So **recommend** the upgrade and **ask the user**, e.g.: *"Want me to turn this into a developer-friendly Astro project? Recommended before adding features — it gives you real source files and the Wix SDK."* **Only if they say yes**, convert in place using the **official Wix Astro template** (the same \`degit\` flow that scaffolds a new headless project):
 
 \`\`\`bash
 npx degit wix/headless-templates/astro/headless-blank . --force   # adds astro.config.mjs (output:"server" + @wix/cloud-provider-fetch-adapter), package.json, src/, public/ — leaves your index.html + wix.config.json untouched
@@ -96,9 +92,13 @@ npm install && wix env pull && wix build && wix release
 - **Render gate:** open the served page and confirm the design actually renders (\`#root\` has children), not just a 200. The decoder handles both export formats (the base64-gzipped \`__bundler\` pack and plain \`text/babel\` HTML) and **fails loud** with \`DESIGN_FORMAT_UNRECOGNIZED\`; on that error — or a blank \`#root\` — decode from first principles and report the new format.
 - **WixPages-friendly (multi-view designs):** give each distinct view a real \`src/pages/<view>.astro\` route (a shared \`DesignApp.astro\` shell + \`history.pushState\` routing) so \`wixPages()\` publishes per-page SEO + real URLs — a single-page scroll site is correctly one route. For a Stores product route, key it by slug and \`export const wixMetadata = { appDefId: "1380b703-ce81-ff05-f115-39571d94dfcd", pageIdentifier: "wix.stores.sub_pages.product", identifiers: { slug: "STORES.PRODUCT.SLUG" } }\`, rendering real per-product tags with \`@wix/seo\`.
 
-Once on Astro, continue to **3b** to wire the actual solution.
+If the user **declines**, stop — the static site already works and they can upgrade later. Only once on Astro, continue to Phase 4.
 
-### 3b. Install the skills and wire the solution
+## Phase 4 — Connect a Business Solution (agentic)
+
+Identify the solution the design/prompt implies — booking/calendar UI → **Bookings**; products/cart/checkout → **Stores**; contact/lead form → **Forms/CMS**. Usually **just one**; only what the design actually shows — never the full set "just in case". Then **ask the user whether to connect it now**, e.g.: *"Your site has a booking form — want me to connect it to Wix Bookings so real bookings land in your dashboard? It takes a few minutes."* **Only if they say yes**, continue. (Wiring needs the Astro project from Phase 3 — if they skipped it, offer it again, since real source + the SDK are required.)
+
+### Install the skills and wire the solution
 
 \`\`\`bash
 wix skills add

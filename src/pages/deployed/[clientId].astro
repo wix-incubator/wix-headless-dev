@@ -65,7 +65,10 @@ if (notFound) {
   Astro.response.status = 404;
 }
 
-const downloadUrl = siteId ? `https://www.wix.com/_api/wixstro-deployments/v1/instant-sites/${siteId}/download` : null;
+// `.zip` suffix so the URL the agent reads in the prompt visibly ends in a
+// recognizable archive extension (the endpoint also serves it as a named
+// attachment via Content-Disposition).
+const downloadUrl = siteId ? `https://www.wix.com/_api/wixstro-deployments/v1/instant-sites/${siteId}/download.zip` : null;
 const dashboardUrl = siteId ? `https://manage.wix.com/dashboard/${siteId}` : null;
 const domainsUrl = siteId ? `https://manage.wix.com/dashboard/${siteId}/domain-settings` : null;
 

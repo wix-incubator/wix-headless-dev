@@ -100,9 +100,8 @@
 /* ===== Action cards (Live site / Dashboard) =====
    Two equal, fully-clickable cards sitting half-and-half. Each frames a preview
    behind shared faux-browser chrome — the live iframe for the site, a light
-   skeleton for the dashboard — over a labelled footer with an arrow. The whole
-   card is the link via a stretched overlay (.ready__card-link); the only nested
-   interactive element is the optional "Connect domain" nudge, lifted above it. */
+   skeleton for the dashboard — over a labelled footer with an arrow. A stretched
+   overlay (.ready__card-link) makes the body clickable. */
 .ready__cards {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -123,8 +122,12 @@
   border-color: var(--fg-faint);
 }
 
-/* Stretched overlay link — covers the whole card so any click opens the target.
-   Sits above the (inert) preview but below the connect-domain nudge. */
+.ready__card-hot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
 .ready__card-link {
   position: absolute;
   inset: 0;

@@ -144,49 +144,53 @@ const description = notFound
         </header>
 
         <section class="ready__cards" aria-label="Next steps">
-          {/* Live site — the whole card opens the published site; the live page
-              renders as an inert thumbnail behind a stretched overlay link. */}
+          {/* Live site — the preview + footer open the published site via a
+              stretched overlay link. The address bar sits OUTSIDE that link's
+              clickable region (.ready__card-hot) so the "Connect domain" nudge
+              is reachable in normal flow — no stacking/z-index trick needed. */}
           <article class="ready__card ready__card--site">
-            <a
-              class="ready__card-link"
-              href={siteUrl}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Open your live site in a new tab"
-            ></a>
-            <div class="browser browser--card">
-              <div class="browser__bar">
-                <span class="browser__dots" aria-hidden="true">
-                  <span></span><span></span><span></span>
-                </span>
-                <span class="browser__addr">
-                  <span class="browser__url">{siteLabel}</span>
-                  {showConnectDomain && (
-                    <a class="browser__domain" href={domainsUrl} target="_blank" rel="noreferrer">
-                      Connect domain
-                    </a>
-                  )}
-                </span>
-              </div>
-              <iframe
-                class="browser__frame"
-                src={siteUrl}
-                title="Your live Wix Headless site"
-                loading="lazy"
-                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                referrerpolicy="no-referrer"
-                tabindex="-1"
-              ></iframe>
+            <div class="browser__bar">
+              <span class="browser__dots" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </span>
+              <span class="browser__addr">
+                <span class="browser__url">{siteLabel}</span>
+                {showConnectDomain && (
+                  <a class="browser__domain" href={domainsUrl} target="_blank" rel="noreferrer">
+                    Connect domain
+                  </a>
+                )}
+              </span>
             </div>
-            <div class="ready__card-foot">
-              <div class="ready__card-meta">
-                <span class="ready__card-title">Visit your site</span>
-                <span class="ready__card-desc">Your site is live and hosted on Wix. Open it now to see your design in action.</span>
+            <div class="ready__card-hot">
+              <a
+                class="ready__card-link"
+                href={siteUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Open your live site in a new tab"
+              ></a>
+              <div class="browser browser--card">
+                <iframe
+                  class="browser__frame"
+                  src={siteUrl}
+                  title="Your live Wix Headless site"
+                  loading="lazy"
+                  sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                  referrerpolicy="no-referrer"
+                  tabindex="-1"
+                ></iframe>
               </div>
-              <svg class="ready__card-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M4 12L12 4" />
-                <path d="M6 4h6v6" />
-              </svg>
+              <div class="ready__card-foot">
+                <div class="ready__card-meta">
+                  <span class="ready__card-title">Visit your site</span>
+                  <span class="ready__card-desc">Your site is live and hosted on Wix. Open it now to see your design in action.</span>
+                </div>
+                <svg class="ready__card-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4 12L12 4" />
+                  <path d="M6 4h6v6" />
+                </svg>
+              </div>
             </div>
           </article>
 

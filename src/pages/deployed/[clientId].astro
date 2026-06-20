@@ -139,68 +139,110 @@ const description = notFound
         <header class="ready__hero">
           <h1 class="ready__title">{headline}</h1>
           <p class="ready__sub">
-            Your design is now a real, hosted website — Wix runs the hosting,
-            SSL, global CDN, and a full management dashboard, nothing to deploy
-            or maintain. It's already wired to production business APIs for
-            commerce, services, CMS, members, and more. Ask your AI agent to
-            activate the ones you need.
+            Your design is now a real hosted website, fully managed on Wix infrastucture trusted by millions. Add payments, bookings, a store and more with one prompt.
           </p>
         </header>
 
-        <section class="ready__cta" aria-label="Next steps">
-          <div class="ready__cta-actions">
-            <a class="ready__btn" href={siteUrl} target="_blank" rel="noreferrer">
-              Visit your site
-            </a>
-            <a class="ready__btn" href={dashboardUrl} target="_blank" rel="noreferrer">
-              Open dashboard
-            </a>
-          </div>
-          <a class="ready__continue" href="#continue">
-            <span class="ready__continue-title">Continue building with your AI agent</span>
-            <svg class="ready__continue-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M3 8h10" />
-              <path d="M9 4l4 4-4 4" />
-            </svg>
-          </a>
-        </section>
-
-        <section class="ready__preview" aria-label="Live preview of your site">
-          <div class="browser">
-            <div class="browser__bar">
-              <span class="browser__dots" aria-hidden="true">
-                <span></span><span></span><span></span>
-              </span>
-              <span class="browser__addr">
-                <span class="browser__url">{siteLabel}</span>
-                {showConnectDomain && (
-                  <a class="browser__domain" href={domainsUrl} target="_blank" rel="noreferrer">
-                    Connect domain
-                  </a>
-                )}
-              </span>
+        <section class="ready__cards" aria-label="Next steps">
+          {/* Live site — the whole card opens the published site; the live page
+              renders as an inert thumbnail behind a stretched overlay link. */}
+          <article class="ready__card ready__card--site">
+            <a
+              class="ready__card-link"
+              href={siteUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Open your live site in a new tab"
+            ></a>
+            <div class="browser browser--card">
+              <div class="browser__bar">
+                <span class="browser__dots" aria-hidden="true">
+                  <span></span><span></span><span></span>
+                </span>
+                <span class="browser__addr">
+                  <span class="browser__url">{siteLabel}</span>
+                  {showConnectDomain && (
+                    <a class="browser__domain" href={domainsUrl} target="_blank" rel="noreferrer">
+                      Connect domain
+                    </a>
+                  )}
+                </span>
+              </div>
+              <iframe
+                class="browser__frame"
+                src={siteUrl}
+                title="Your live Wix Headless site"
+                loading="lazy"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                referrerpolicy="no-referrer"
+                tabindex="-1"
+              ></iframe>
             </div>
-            <iframe
-              class="browser__frame"
-              src={siteUrl}
-              title="Your live Wix Headless site"
-              loading="lazy"
-              sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-              referrerpolicy="no-referrer"
-            ></iframe>
-          </div>
-        </section>
+            <div class="ready__card-foot">
+              <div class="ready__card-meta">
+                <span class="ready__card-title">Visit your site</span>
+                <span class="ready__card-desc">Your site is live and hosted on Wix. Open it now to see your design in action.</span>
+              </div>
+              <svg class="ready__card-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 12L12 4" />
+                <path d="M6 4h6v6" />
+              </svg>
+            </div>
+          </article>
 
-        <div id="continue" class="bento__prompt-zone">
-          <section class="bento__prompt block" aria-label="Continue with this prompt">
-            <PromptTitle client:load lead="Use this with" />
-            <CopyPrompt
-              lines={promptDisplayLines}
-              copyText={promptCopyText}
-              client:load
-            />
-          </section>
-        </div>
+          {/* Dashboard — same chrome, with a lightweight skeleton standing in for
+              the management dashboard preview. */}
+          <article class="ready__card ready__card--dash">
+            <a
+              class="ready__card-link"
+              href={dashboardUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Open your site dashboard in a new tab"
+            ></a>
+            <div class="browser browser--card" aria-hidden="true">
+              <div class="browser__bar">
+                <span class="browser__dots">
+                  <span></span><span></span><span></span>
+                </span>
+                <span class="browser__addr">
+                  <span class="browser__url">manage.wix.com/dashboard</span>
+                </span>
+              </div>
+              <div class="dashmock">
+                <aside class="dashmock__side">
+                  <span class="dashmock__logo"></span>
+                  <span class="dashmock__nav"></span>
+                  <span class="dashmock__nav dashmock__nav--active"></span>
+                  <span class="dashmock__nav"></span>
+                  <span class="dashmock__nav"></span>
+                </aside>
+                <div class="dashmock__main">
+                  <div class="dashmock__row--head">
+                    <span class="dashmock__title"></span>
+                    <span class="dashmock__btn"></span>
+                  </div>
+                  <div class="dashmock__cards">
+                    <span class="dashmock__stat"></span>
+                    <span class="dashmock__stat"></span>
+                    <span class="dashmock__stat"></span>
+                  </div>
+                  <div class="dashmock__chart"></div>
+                </div>
+              </div>
+            </div>
+            <div class="ready__card-foot">
+              <div class="ready__card-meta">
+                <span class="ready__card-title">Manage and scale</span>
+                <span class="ready__card-desc">Run your business from one Wix dashboard as you grow.</span>
+              </div>
+              <svg class="ready__card-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 12L12 4" />
+                <path d="M6 4h6v6" />
+              </svg>
+            </div>
+          </article>
+        </section>
 
         <section class="bento__steps block ready__steps" aria-label="How it works">
           <ol class="steps">
@@ -229,6 +271,17 @@ const description = notFound
             </svg>
           </a>
         </section>
+
+        <div id="continue" class="bento__prompt-zone">
+          <section class="bento__prompt block" aria-label="Continue with this prompt">
+            <PromptTitle client:load lead="Use this with" />
+            <CopyPrompt
+              lines={promptDisplayLines}
+              copyText={promptCopyText}
+              client:load
+            />
+          </section>
+        </div>
       </main>
     )}
 

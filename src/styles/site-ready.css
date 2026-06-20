@@ -9,6 +9,9 @@
   flex-direction: column;
   gap: 20px;
   padding-bottom: 32px;
+  /* Shared thumbnail height for both action-card previews (live iframe +
+     dashboard skeleton) so the two halves line up exactly. */
+  --ready-preview-h: clamp(180px, 28vw, 180px);
 }
 
 /* ----- Not-found (404) state -----
@@ -32,7 +35,7 @@
    glow. The page's one sanctioned yellow-glow moment is the prompt zone
    below — the hero stays quiet so it doesn't compete. */
 .ready__hero {
-  padding: clamp(36px, 6vw, 56px) clamp(28px, 5vw, 48px);
+  padding: 36px 48px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background:
@@ -55,17 +58,9 @@
   line-height: 1.55;
 }
 
-/* ----- CTA row -----
-   Left: a solid "Visit your site" primary + an outlined "Open dashboard".
-   Pushed to the right: the highlighted "Continue building" box (the main next
-   step). align-items: stretch keeps the left buttons the box's height. */
-.ready__cta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  justify-content: space-between;
-  gap: 16px;
-}
+/* ----- Action buttons (404 escape hatches only) -----
+   On the success page the primary actions are the two cards below; these plain
+   buttons survive only for the not-found state's "Back to homepage / docs" row. */
 .ready__cta-actions {
   display: flex;
   gap: 12px;
@@ -97,53 +92,140 @@
 }
 .ready__btn--primary:hover { border-color: var(--fg); }
 
-/* ----- "Continue building" — the highlighted CTA -----
-   Sits at the right of the row; solid accent border + glow (the prompt-box
-   vocabulary) so it reads as the main next step. Anchors to #continue. */
-.ready__continue {
-  flex: 0 1 auto;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 14px clamp(20px, 2.5vw, 28px);
-  border: 1px solid rgba(250, 255, 0, 0.45);
-  border-radius: var(--radius);
-  background:
-    radial-gradient(120% 80% at 50% 0%, rgba(250, 255, 0, 0.035) 0%, transparent 65%),
-    var(--bg-card-2);
-  box-shadow:
-    0 0 0 4px rgba(250, 255, 0, 0.04),
-    0 0 50px -12px rgba(250, 255, 0, 0.16);
-  text-decoration: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+/* Narrow screens: stack the 404 buttons full-width. */
+@media (max-width: 700px) {
+  .ready__cta-actions { flex-direction: column; }
 }
-.ready__continue:hover { border-color: var(--accent); }
-.ready__continue-title {
+
+/* ===== Action cards (Live site / Dashboard) =====
+   Two equal, fully-clickable cards sitting half-and-half. Each frames a preview
+   behind shared faux-browser chrome — the live iframe for the site, a light
+   skeleton for the dashboard — over a labelled footer with an arrow. The whole
+   card is the link via a stretched overlay (.ready__card-link); the only nested
+   interactive element is the optional "Connect domain" nudge, lifted above it. */
+.ready__cards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+}
+.ready__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  overflow: hidden;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.ready__card:hover {
+  transform: translateY(-2px);
+  border-color: var(--fg-faint);
+}
+
+/* Stretched overlay link — covers the whole card so any click opens the target.
+   Sits above the (inert) preview but below the connect-domain nudge. */
+.ready__card-link {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+}
+.ready__card-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* Footer: title + description on the left, arrow pinned top-right. */
+.ready__card-foot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 18px 20px 20px;
+  border-top: 1px solid var(--border);
+}
+.ready__card-meta { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.ready__card-title {
   font-size: var(--fs-md);
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--fg);
-  min-width: 0;
 }
-.ready__continue-arrow {
+.ready__card-desc {
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  color: var(--fg-muted);
+  text-wrap: pretty;
+}
+.ready__card-arrow {
   flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
   color: var(--fg-muted);
   transition: transform 0.18s ease, color 0.18s ease;
 }
-.ready__continue:hover .ready__continue-arrow { transform: translateX(3px); color: var(--fg); }
+.ready__card:hover .ready__card-arrow { transform: translate(2px, -2px); color: var(--fg); }
 
-/* Narrow screens: stack the CTAs full-width. */
+/* Browser chrome reused inside a card: drop its own frame (the card supplies the
+   border + rounding) and pin the preview body to the shared thumbnail height.
+   Selectors are scoped under .ready__card so they out-specify the base .browser
+   rules below — otherwise source order re-rounds the preview's bottom corners. */
+.ready__card .browser--card { border: 0; border-radius: 0; background: transparent; }
+.ready__card .browser--card .browser__frame {
+  height: var(--ready-preview-h);
+  pointer-events: none; /* clicks fall through to the overlay link */
+}
+
+/* ----- Dashboard skeleton (decorative stand-in for a preview) ----- */
+.dashmock {
+  display: flex;
+  gap: 12px;
+  height: var(--ready-preview-h);
+  padding: 14px;
+  background: var(--bg);
+}
+.dashmock__side {
+  flex: 0 0 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  background: var(--bg-card-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.dashmock__logo {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  background: var(--accent);
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+.dashmock__nav { width: 18px; height: 6px; border-radius: 3px; background: var(--border-strong); }
+.dashmock__nav--active { background: var(--fg-faint); }
+.dashmock__main { flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.dashmock__row--head { display: flex; align-items: center; justify-content: space-between; }
+.dashmock__title { width: 40%; height: 12px; border-radius: 4px; background: var(--border-strong); }
+.dashmock__btn { width: 56px; height: 22px; border-radius: 6px; background: var(--accent); opacity: 0.85; }
+.dashmock__cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.dashmock__stat { height: 44px; border-radius: 8px; background: var(--bg-card-2); border: 1px solid var(--border); }
+.dashmock__chart {
+  flex: 1;
+  min-height: 56px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--bg-card-2) 0%, var(--bg) 100%);
+}
+
 @media (max-width: 700px) {
-  .ready__cta { flex-direction: column; align-items: stretch; }
-  .ready__cta-actions { flex-direction: column; }
+  .ready__cards { grid-template-columns: 1fr; }
 }
 
 /* ----- Live preview (faux browser chrome around the iframe) ----- */
-.ready__preview { width: 100%; }
 .browser {
   border: 1px solid var(--border);
   border-radius: var(--radius);

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { bookings } from "@wix/bookings";
 import { submittedContact, notes } from "@wix/crm";
+import { book, navigateToCheckout, BookResultType, type SelectedSlot } from "./bookingDriver";
 
 type Phase =
   | "pick"
@@ -67,9 +67,6 @@ export default function BookEngineer({
   const [description, setDescription] = useState("");
   const [filterStaffId, setFilterStaffId] = useState<string | null>(null);
 
-  // Day-row pager. Visible window = container clientWidth (3 days on
-  // desktop). Each prev/next click scrolls by exactly that width, so the
-  // user jumps in 3-day intervals. Mobile uses native scroll/swipe.
   const daysRef = useRef<HTMLDivElement | null>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
@@ -87,10 +84,6 @@ export default function BookEngineer({
     el.scrollBy({ left: dir * el.clientWidth, behavior: "smooth" });
   };
 
-  // Switching the engineer filter invalidates any previously selected slot
-  // — it may belong to a staff member the new filter excludes, or just be
-  // misleading ("you picked X with Alice, now we're showing Bob's slots").
-  // Reset the selection so the user re-picks within the new filter.
   const pickFilter = (id: string | null) => {
     setFilterStaffId(id);
     setSelectedSlot(null);
@@ -99,10 +92,6 @@ export default function BookEngineer({
   const service = initialService;
   const slots = initialSlots;
 
-  // Staff that actually appear in any slot's availableResources.
-  // Sorted alphabetically by first name so the chip order is stable and
-  // doesn't shift based on whichever staff member happens to have the
-  // earliest available slot in the current window.
   const availableStaff = useMemo(() => {
     const ids = new Set<string>();
     for (const s of slots) {
@@ -127,9 +116,6 @@ export default function BookEngineer({
     });
   }, [slots, filterStaffId]);
 
-  // Group slots by calendar day so the UI can render a date header once,
-  // then a row of compact time-only pills underneath — same pattern as
-  // Calendly/Acuity. Avoids repeating "Mon, May 18" on every slot.
   const slotsByDay = useMemo(() => {
     const groups = new Map<string, { date: Date; slots: Slot[] }>();
     for (const s of visibleSlots) {
@@ -192,7 +178,6 @@ export default function BookEngineer({
             type: "MEETING_SUMMARY",
           } as any);
         } catch {
-          // notes may require elevated permissions; the contact is enough.
         }
       }
       setPhase("request-done");
@@ -200,15 +185,6 @@ export default function BookEngineer({
       setError(err?.message ?? "Couldn't send your request. Try again in a moment.");
       setPhase("request");
     }
-  };
-
-  const pickResource = (slot: Slot) => {
-    const list = slot?.availableResources?.[0]?.resources ?? [];
-    if (filterStaffId) {
-      const match = list.find((r: any) => (r?._id ?? r?.id) === filterStaffId);
-      if (match) return match;
-    }
-    return list[0];
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -219,111 +195,68 @@ export default function BookEngineer({
     try {
       const [firstName, ...rest] = name.trim().split(/\s+/);
       const lastName = rest.join(" ") || undefined;
-      const slotLocationType = (() => {
-        switch (selectedSlot.location?.locationType) {
-          case "BUSINESS": return "OWNER_BUSINESS";
-          case "CUSTOM":   return "OWNER_CUSTOM";
-          case "CUSTOMER": return "CUSTOM";
-          default:         return "UNDEFINED";
-        }
-      })();
-      const resource = pickResource(selectedSlot);
-      const resourceId = resource?._id ?? resource?.id;
       const trimmedDescription = description.trim();
-      // Appointment bookings always come back as `CREATED` for anonymous
-      // visitors — `skipBusinessConfirmation` requires a scope anon visitors
-      // don't have, so the SDK silently drops it. Without confirmation no
-      // session is minted, no email goes out. We then POST to a server route
-      // that confirms with elevated permissions.
-      const createRes: any = await bookings.createBooking({
-        bookedEntity: {
-          slot: {
-            serviceId: service._id,
-            scheduleId: selectedSlot.scheduleId,
-            startDate: selectedSlot.localStartDate ?? selectedSlot.startDate,
-            endDate: selectedSlot.localEndDate ?? selectedSlot.endDate,
-            timezone: selectedSlot.timezone ?? service.schedule?.timezone,
-            location: {
-              locationType: slotLocationType,
-              ...(selectedSlot.location?.id && { _id: selectedSlot.location.id }),
-            },
-            ...(resourceId && { resource: { _id: resourceId } }),
-          },
-        },
-        contactDetails: {
-          firstName: firstName || "Guest",
-          lastName,
+
+      const slot: SelectedSlot = {
+        serviceType: "APPOINTMENT",
+        serviceId: service._id,
+        localStartDate: selectedSlot.localStartDate ?? selectedSlot.startDate,
+        localEndDate: selectedSlot.localEndDate ?? selectedSlot.endDate,
+        timezone: selectedSlot.timezone ?? service.schedule?.timezone,
+        scheduleId: selectedSlot.scheduleId,
+        locationId: selectedSlot.location?._id ?? selectedSlot.location?.id,
+        locationType: selectedSlot.location?.locationType,
+        ...(filterStaffId && {
+          resource: { _id: filterStaffId, name: staffById[filterStaffId]?.name },
+        }),
+      };
+
+      const result = await book({
+        service,
+        slot,
+        timezone: slot.timezone,
+        formSubmission: {
+          first_name: firstName || "Guest",
+          ...(lastName && { last_name: lastName }),
           email,
         },
-        totalParticipants: 1,
-      } as any);
+      });
 
-      const createdBooking = createRes?.booking ?? createRes;
-      const bookingId = createdBooking?._id ?? createdBooking?.id;
-      const revision = createdBooking?.revision;
-      if (bookingId && revision) {
-        const confirmRes = await fetch("/api/bookings/confirm", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            bookingId,
-            revision,
-            email,
-            message: trimmedDescription
-              ? `What I want to build:\n${trimmedDescription}`
-              : undefined,
-          }),
-        });
-        if (!confirmRes.ok) {
-          const body = await confirmRes.json().catch(() => ({}));
-          throw new Error(body?.error ?? "Couldn't confirm the booking.");
-        }
+      if (result.type === BookResultType.CheckoutRequired) {
+        await navigateToCheckout(result.cartId, window.location.href);
+        return;
       }
 
-      // "Any engineer" path: the slot was booked with the first available
-      // staff (via pickResource). Drop a CRM note on the customer's contact
-      // listing the OTHER staff who were also free at this time, so the
-      // booked engineer (and anyone reviewing the contact) can re-route
-      // internally if a different engineer is a better fit.
-      if (filterStaffId === null) {
-        try {
-          const allResources =
-            (selectedSlot?.availableResources?.[0]?.resources ?? []) as any[];
-          const otherNames = allResources
-            .filter((r) => (r?._id ?? r?.id) !== resourceId)
-            .map((r) => {
-              const id = r?._id ?? r?.id;
-              return staffById[id]?.name ?? r?.name ?? "Engineer";
-            })
-            .filter(Boolean);
-
-          if (otherNames.length > 0) {
-            const contactRes: any = await submittedContact.appendOrCreateContact({
-              info: {
-                name: { first: firstName || "Guest", last: lastName },
-                emails: { items: [{ email, tag: "MAIN" as any }] },
-              },
+      try {
+        const allResources =
+          (selectedSlot?.availableResources?.[0]?.resources ?? []) as any[];
+        const otherNames =
+          filterStaffId === null
+            ? allResources
+                .map((r) => staffById[r?._id ?? r?.id]?.name ?? r?.name)
+                .filter(Boolean)
+            : [];
+        const lines: string[] = [];
+        if (trimmedDescription) lines.push(`What I want to build:\n${trimmedDescription}`);
+        if (otherNames.length > 0)
+          lines.push(`"Any engineer" booking — staff free at this slot: ${otherNames.join(", ")}.`);
+        if (lines.length > 0) {
+          const contactRes: any = await submittedContact.appendOrCreateContact({
+            info: {
+              name: { first: firstName || "Guest", last: lastName },
+              emails: { items: [{ email, tag: "MAIN" as any }] },
+            },
+          } as any);
+          const contactId = contactRes?.contactId;
+          if (contactId) {
+            await notes.createNote({
+              contactId,
+              text: lines.join("\n\n"),
+              type: "MEETING_SUMMARY",
             } as any);
-            const contactId = contactRes?.contactId;
-            if (contactId) {
-              const bookedName =
-                (resourceId && staffById[resourceId]?.name) || "the assigned engineer";
-              const noteText = [
-                `"Any engineer" booking via wix-headless.dev.`,
-                `Assigned: ${bookedName}.`,
-                `Also free at this slot: ${otherNames.join(", ")}.`,
-                `Team: re-route internally if a different engineer fits better.`,
-              ].join("\n\n");
-              await notes.createNote({
-                contactId,
-                text: noteText,
-                type: "MEETING_SUMMARY",
-              } as any);
-            }
           }
-        } catch {
-          // Note is supplementary — don't fail the booking if this errors.
         }
+      } catch {
       }
 
       setPhase("done");
@@ -346,7 +279,6 @@ export default function BookEngineer({
     });
   };
 
-  // Returns the staff to display for a slot — respects the current filter.
   const slotStaff = (s: Slot | null): { id: string; info: StaffInfo } | null => {
     const list = s?.availableResources?.[0]?.resources ?? [];
     if (filterStaffId) {

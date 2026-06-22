@@ -308,10 +308,8 @@ const description = notFound
       });
     }
 
-    document.addEventListener("click", (e) => {
-      const el = (e.target as Element)?.closest?.("[data-track]");
-      if (!el) return;
-      analytics.buttonClicked();
+    document.querySelectorAll("[data-track]").forEach((el) => {
+      el.addEventListener("click", () => analytics.buttonClicked());
     });
   </script>
 </Layout>

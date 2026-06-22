@@ -291,10 +291,11 @@ const description = notFound
   </div>
 
   <script>
-    // Wix-native analytics (same module the Copy button uses). A landing
-    // event for the 404 state only, plus a delegated click tracker for every
-    // CTA tagged with data-track. trackEvent is fire-and-forget, so it runs
-    // fine even on the target="_blank" links right before navigation.
+    // Wix-native analytics (same module the Copy button uses). Every CTA
+    // tagged with data-track reports a buttonClicked (no payload — it just
+    // marks the element as tracked). The 404 state additionally reports a
+    // CustomEvent landing. Both are fire-and-forget, so they run fine even on
+    // the target="_blank" links right before navigation.
     import { analytics } from "@wix/site";
 
     const state = document.querySelector(".page")?.getAttribute("data-deployed-state") ?? "unknown";
@@ -310,11 +311,7 @@ const description = notFound
     document.addEventListener("click", (e) => {
       const el = (e.target as Element)?.closest?.("[data-track]");
       if (!el) return;
-      analytics.trackEvent("CustomEvent", {
-        eventCategory: "deployed",
-        eventAction: el.getAttribute("data-track"),
-        eventLabel: state,
-      });
+      analytics.buttonClicked();
     });
   </script>
 </Layout>

@@ -16,8 +16,10 @@
   "dependencies": {
     "@wix/astro": "^2.52.0",
     "@wix/astro-pages": "^2.0.4",
+    "@wix/auto_sdk_ecom_cart-v-2": "^1.0.154",
     "@wix/blog": "^1.0.606",
     "@wix/bookings": "^1.0.1386",
+    "@wix/redirects": "^1.0.113",
     "@wix/crm": "^1.0.1534",
     "@wix/dashboard": "^1.3.36",
     "@wix/essentials": "^1.0.6",

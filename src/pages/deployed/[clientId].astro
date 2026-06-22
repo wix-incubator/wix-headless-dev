@@ -113,7 +113,7 @@ const description = notFound
 <Layout title={`${headline} | Wix Headless`} description={description} xray={false}>
   <meta slot="seo-tags" name="robots" content="noindex, nofollow" />
 
-  <div class="page">
+  <div class="page" data-deployed-state={notFound ? "not-found" : "live"}>
     <Topbar xray={false} />
 
     {notFound ? (
@@ -128,7 +128,7 @@ const description = notFound
           </p>
           <div class="ready__cta-actions ready__cta--error">
             <a class="ready__btn ready__btn--primary" href="/">Back to homepage</a>
-            <a class="ready__btn" href="https://dev.wix.com/docs/go-headless/wix-managed-headless/start-from-your-own-frontend/development-of-a-project-started-from-your-own-frontend" target="_blank" rel="noreferrer">
+            <a class="ready__btn" href="https://dev.wix.com/docs/go-headless/wix-managed-headless/start-from-your-own-frontend/development-of-a-project-started-from-your-own-frontend" target="_blank" rel="noreferrer" data-track="docs">
               Read the docs
             </a>
           </div>
@@ -152,7 +152,7 @@ const description = notFound
               <span class="browser__addr">
                 <span class="browser__url">{siteLabel}</span>
                 {showConnectDomain && (
-                  <a class="browser__domain" href={domainsUrl} target="_blank" rel="noreferrer">
+                  <a class="browser__domain" href={domainsUrl} target="_blank" rel="noreferrer" data-track="connect-domain">
                     Connect domain
                   </a>
                 )}
@@ -165,6 +165,7 @@ const description = notFound
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Open your live site in a new tab"
+                data-track="visit-site"
               ></a>
               <div class="browser browser--card">
                 <iframe
@@ -199,6 +200,7 @@ const description = notFound
               target="_blank"
               rel="noreferrer"
               aria-label="Open your site dashboard in a new tab"
+              data-track="open-dashboard"
             ></a>
             <div class="browser browser--card" aria-hidden="true">
               <div class="browser__bar">
@@ -262,7 +264,7 @@ const description = notFound
               <span class="step__detail">on a real Wix <a href="/skill.md">backend</a></span>
             </li>
           </ol>
-          <a class="ready__guide" href="https://dev.wix.com/docs/go-headless/wix-managed-headless/start-from-your-own-frontend/development-of-a-project-started-from-your-own-frontend" target="_blank" rel="noreferrer">
+          <a class="ready__guide" href="https://dev.wix.com/docs/go-headless/wix-managed-headless/start-from-your-own-frontend/development-of-a-project-started-from-your-own-frontend" target="_blank" rel="noreferrer" data-track="guide">
             Read the full guide
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M6 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3" />
@@ -287,4 +289,32 @@ const description = notFound
 
     <Footer />
   </div>
+
+  <script>
+    // Wix-native analytics (same module the Copy button uses). A landing
+    // event for the 404 state only, plus a delegated click tracker for every
+    // CTA tagged with data-track. trackEvent is fire-and-forget, so it runs
+    // fine even on the target="_blank" links right before navigation.
+    import { analytics } from "@wix/site";
+
+    const state = document.querySelector(".page")?.getAttribute("data-deployed-state") ?? "unknown";
+    // Only the 404 landing is worth a signal; live landings aren't tracked.
+    if (state === "not-found") {
+      analytics.trackEvent("CustomEvent", {
+        eventCategory: "deployed",
+        eventAction: "landed",
+        eventLabel: state,
+      });
+    }
+
+    document.addEventListener("click", (e) => {
+      const el = (e.target as Element)?.closest?.("[data-track]");
+      if (!el) return;
+      analytics.trackEvent("CustomEvent", {
+        eventCategory: "deployed",
+        eventAction: el.getAttribute("data-track"),
+        eventLabel: state,
+      });
+    });
+  </script>
 </Layout>

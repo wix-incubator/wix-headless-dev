@@ -33,7 +33,7 @@
     "@astrojs/react": "^4.3.0",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
-    "@wix/cli": "^1.1.206",
+    "@wix/cli": "^1.1.220",
     "@wix/cloud-provider-fetch-adapter": "^1.0.0",
     "react": "18.3.1",
     "react-dom": "18.3.1"

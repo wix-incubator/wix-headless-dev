@@ -2,7 +2,6 @@
 import "../styles/xray.css";
 import XRayLayer from "../components/xray/Layer.tsx";
 
-const SITE_URL = "https://www.wix-headless.dev";
 const {
 	xray = true,
 } = Astro.props;
@@ -19,17 +18,6 @@ const {
 		<meta name="author" content="Wix.com, Inc." />
 <meta name="twitter:site" content="@Wix" />
 		<meta name="theme-color" content="#0a0a0a" />
-		<script type="application/ld+json" set:html={JSON.stringify({
-			"@context": "https://schema.org",
-			"@type": "WebSite",
-			name: "Wix Headless",
-			url: SITE_URL + "/",
-			publisher: {
-				"@type": "Organization",
-				name: "Wix",
-				url: "https://www.wix.com/"
-			}
-		})} />
 		<link rel="preconnect" href="https://rsms.me/" />
 		<link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
 		<!--

@@ -38,7 +38,7 @@ Download the bootstrap script, then run it. It verifies the Wix CLI and handles 
 
 \`\`\`bash
 # macOS/Linux:
-curl -sO https://wix-headless.dev/bootstrap.mjs
+curl -fsSL -O https://wix-headless.dev/bootstrap.mjs
 # Windows PowerShell:
 iwr https://wix-headless.dev/bootstrap.mjs -OutFile bootstrap.mjs
 \`\`\`

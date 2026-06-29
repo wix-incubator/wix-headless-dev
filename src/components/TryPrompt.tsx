@@ -89,7 +89,7 @@ export default function TryPrompt() {
 
   const copyText = useMemo(() => {
     const effectiveIntent = userText.trim() || placeholder;
-    return `build ${effectiveIntent} using ${HOST}${SKILL_PATH}`;
+    return `build ${effectiveIntent} using https://${HOST}${SKILL_PATH}`;
   }, [userText, placeholder]);
 
   const handleCopy = async () => {

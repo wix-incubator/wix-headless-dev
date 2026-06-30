@@ -30,7 +30,10 @@ function capture(cmd, args, opts = {}) {
 function checkCli() {
   const r = capture(WIX[0], [...WIX.slice(1), "--version"]);
   if (r.status !== 0) fail("cli_unreachable", { detail: r.out.trim().slice(0, 400) });
-  emit("cli_ok", { version: r.out.trim().split("\n").pop() });
+  // npx interleaves "npm notice …" lines with the version, so don't just take the
+  // last line — pick the first semver-looking token, falling back to the last line.
+  const version = (r.out.match(/\d+\.\d+\.\d+[^\s]*/) || [])[0] || r.out.trim().split("\n").pop();
+  emit("cli_ok", { version });
 }
 
 // ── 2. Login (human-in-the-loop device code; forward the CLI's own events) ───
@@ -39,6 +42,13 @@ function login() {
     const child = spawn(WIX[0], [...WIX.slice(1), "login"], { shell: false, env: AGENT_ENV });
     const rl = readline.createInterface({ input: child.stdout });
     let loggedIn = false;
+    // Buffer the CLI's own diagnostics (stderr + any non-event stdout chatter) so a
+    // failure reports the REAL cause — network/proxy error, expired code, etc. — not
+    // a guess. Keep only the tail so a chatty CLI can't blow up memory, and draining
+    // stderr also avoids the pipe filling up and stalling the child.
+    let diag = "";
+    const collect = (chunk) => { diag = (diag + chunk).slice(-2000); };
+    child.stderr?.on("data", collect);
     rl.on("line", (line) => {
       const t = line.trim();
       if (!t) return;
@@ -47,14 +57,15 @@ function login() {
       try {
         const ev = JSON.parse(t);
         if (ev && ev.event) { process.stdout.write(t + "\n"); if (ev.event === "success" || ev.event === "logged_in") { loggedIn = true; resolve(); } return; }
-      } catch { /* non-JSON CLI chatter — ignore */ }
+        collect(line + "\n"); // JSON, but not an event — keep for diagnostics
+      } catch { collect(line + "\n"); } // non-JSON CLI chatter — keep for diagnostics
     });
-    // Don't treat a bare exit as success — only a success/logged_in event counts.
-    // Otherwise a crash (e.g. the CLI fell back to interactive mode) silently
-    // "passes" and the rest of the flow runs unauthenticated.
+    // Only a success/logged_in event counts as login. On any other exit, surface the
+    // CLI's actual output — do NOT assume a cause (agent mode, etc.).
     child.on("close", (code) => {
       if (loggedIn) return;
-      fail("login_failed", { detail: `wix login exited (code ${code}) before authenticating. The CLI must run in non-interactive agent mode (AI_AGENT is set).` });
+      const detail = diag.trim().slice(-1500) || `wix login exited (code ${code}) before authenticating, with no output.`;
+      fail("login_failed", { code, detail });
     });
     child.on("error", (e) => fail("login_failed", { detail: String(e) }));
   });

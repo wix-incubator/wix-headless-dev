@@ -34,12 +34,6 @@ If that errors (Node not installed) or prints a version below 20.11, install or 
 
 ## Phase 1 — Run the bootstrap (deterministic)
 
-**First, export \`AI_AGENT\` for the rest of this session.** Every Wix CLI command (\`wix login\`, \`wix release\`, \`npm create @wix/new\`, \`wix skills add\`, …) defaults to an interactive terminal UI that needs a raw TTY and will crash in an agent sandbox. Setting \`AI_AGENT\` switches the CLI to non-interactive **agent mode**, which emits one JSON event per line instead — no TTY required:
-
-\`\`\`bash
-export AI_AGENT="<your-agent-name>"   # e.g. claude-code, cursor, codex, gemini
-\`\`\`
-
 Download the bootstrap script, then run it. It verifies the Wix CLI and handles login, emitting **one JSON event per line** on stdout. **Run it as a background/streaming process and relay its events to the user**, then read the final \`done\` event for the links.
 
 \`\`\`bash
@@ -104,6 +98,8 @@ Identify the single solution the project files or prompt imply:
 It's usually **just one** — connect only what the design actually shows, never the full set "just in case". Then **ask the user whether to connect it now**, e.g. *"Your site has a booking form — want me to connect it to Wix Bookings so real bookings land in your dashboard? It takes a few minutes."* Continue **only if they say yes**.
 
 ### 2a. Install the Wix Headless skills
+
+> Most agents are auto-detected, but if your environment isn't, set \`AI_AGENT=<name>\` so the Wix CLI commands below stay non-interactive.
 
 \`\`\`bash
 wix skills add

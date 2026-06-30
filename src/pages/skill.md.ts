@@ -49,6 +49,8 @@ node bootstrap.mjs
 
 ### Pick the mode
 
+The steps below run Wix CLI commands directly. Most agents are auto-detected; if yours isn't, set \`AI_AGENT=<name>\` so those commands stay non-interactive.
+
 **Continuing a deployed site** — the user gave you a Wix download URL, or you're already in a folder with a \`wix.config.json\`:
 
 1. Adjust \`wix.config.json\` (set \`outputDirectory\`) accordingly.
@@ -98,8 +100,6 @@ Identify the single solution the project files or prompt imply:
 It's usually **just one** — connect only what the design actually shows, never the full set "just in case". Then **ask the user whether to connect it now**, e.g. *"Your site has a booking form — want me to connect it to Wix Bookings so real bookings land in your dashboard? It takes a few minutes."* Continue **only if they say yes**.
 
 ### 2a. Install the Wix Headless skills
-
-> Most agents are auto-detected, but if your environment isn't, set \`AI_AGENT=<name>\` so the Wix CLI commands below stay non-interactive.
 
 \`\`\`bash
 wix skills add

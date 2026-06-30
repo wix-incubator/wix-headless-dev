@@ -34,6 +34,12 @@ If that errors (Node not installed) or prints a version below 20.11, install or 
 
 ## Phase 1 — Run the bootstrap (deterministic)
 
+**First, export \`AI_AGENT\` for the rest of this session.** Every Wix CLI command (\`wix login\`, \`wix release\`, \`npm create @wix/new\`, \`wix skills add\`, …) defaults to an interactive terminal UI that needs a raw TTY and will crash in an agent sandbox. Setting \`AI_AGENT\` switches the CLI to non-interactive **agent mode**, which emits one JSON event per line instead — no TTY required:
+
+\`\`\`bash
+export AI_AGENT="<your-agent-name>"   # e.g. claude-code, cursor, codex, gemini
+\`\`\`
+
 Download the bootstrap script, then run it. It verifies the Wix CLI and handles login, emitting **one JSON event per line** on stdout. **Run it as a background/streaming process and relay its events to the user**, then read the final \`done\` event for the links.
 
 \`\`\`bash

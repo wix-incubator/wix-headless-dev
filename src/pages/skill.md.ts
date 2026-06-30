@@ -49,8 +49,6 @@ node bootstrap.mjs
 
 ### Pick the mode
 
-The steps below run Wix CLI commands directly. Most agents are auto-detected; if yours isn't, set \`AI_AGENT=<name>\` so those commands stay non-interactive.
-
 **Continuing a deployed site** — the user gave you a Wix download URL, or you're already in a folder with a \`wix.config.json\`:
 
 1. Adjust \`wix.config.json\` (set \`outputDirectory\`) accordingly.

@@ -53,7 +53,6 @@ node bootstrap.mjs
 
 1. Adjust \`wix.config.json\` (set \`outputDirectory\`) accordingly.
 2. Release the project: \`wix release\`.
-3. Tell the user, in a short and upbeat message, that the site is **live** (give the live URL), the **dashboard** is at \`https://manage.wix.com/dashboard/<siteId>\`, and the project is set up locally (\`projectDir\`). This is a real milestone — let them see it.
 
 **Connecting an existing codebase to a new Wix site** — you're in a non-empty directory that has no \`wix.config.json\`:
 
@@ -61,7 +60,6 @@ node bootstrap.mjs
 2. Adjust \`wix.config.json\` (set \`outputDirectory\`) accordingly.
 3. Build the project (if needed).
 4. Release the project: \`wix release\`.
-5. Tell the user, in a short and upbeat message, that the site is **live** (give the live URL), the **dashboard** is at \`https://manage.wix.com/dashboard/<siteId>\`, and the project is set up locally (\`projectDir\`). This is a real milestone — let them see it.
 
 **Starting from scratch** — a prompt with no existing project (empty directory). Derive a human **business name** and a kebab-case **folder name** from the prompt, then create a new Wix CLI Headless project:
 
@@ -74,6 +72,10 @@ npm create @wix/new@latest headless -- \\
 \`\`\`
 
 \`<business-name>\` must contain at least one letter or number; \`<folder-name>\` must match \`^[a-z0-9][a-z0-9-]*$\` (e.g. \`Acme Bakery\` → \`acme-bakery\`). Ask the user if you can't derive a sensible name.
+
+### Report the result
+
+Once the site is live — after \`wix release\` above, or from the bootstrap's final \`done\` event when starting from scratch — tell the user: the site is **live** (give the live URL), the **dashboard** is at \`https://manage.wix.com/dashboard/<siteId>\`, and the project is set up locally (\`projectDir\`). Be clear that it's still an **empty starter site** — their real content and branding come next, so the work is just beginning.
 
 ### Relay these events
 

@@ -89,15 +89,7 @@ The script emits one JSON object per line:
 
 ## Phase 2 — Connect a Business Solution (agentic)
 
-Identify the single solution the project files or prompt imply:
-
-- booking/calendar UI → **Bookings**
-- products/cart/checkout → **Stores**
-- contact/lead form → **Forms/CMS**
-
-It's usually **just one** — connect only what the design actually shows, never the full set "just in case". Then **ask the user whether to connect it now**, e.g. *"Your site has a booking form — want me to connect it to Wix Bookings so real bookings land in your dashboard? It takes a few minutes."* Continue **only if they say yes**.
-
-### 2a. Install the Wix Headless skills
+### Install the Wix Headless skills
 
 \`\`\`bash
 wix skills add
@@ -107,7 +99,7 @@ npx skills add wix/skills --yes
 
 The skills land in \`.agents/skills/\`.
 
-### 2b. Prepare the Wix site
+### Prepare the Wix site
 
 Follow the \`wix-manage\` skill to seed data and install the needed Business Solution.
 
@@ -118,7 +110,7 @@ Authorization: Bearer $(npx @wix/cli@latest token --site "$SITE_ID")
 wix-site-id: $SITE_ID
 \`\`\`
 
-### 2c. Implement the Business Solution logic
+### Implement the Business Solution logic
 
 This depends on the mode you picked in Phase 1.
 

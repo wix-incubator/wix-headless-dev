@@ -53,7 +53,6 @@ node bootstrap.mjs
 
 1. Adjust \`wix.config.json\` (set \`outputDirectory\`) accordingly.
 2. Release the project: \`wix release\`.
-3. Tell the user, in a short and upbeat message, that the site is **live** (give the live URL), the **dashboard** is at \`https://manage.wix.com/dashboard/<siteId>\`, and the project is set up locally (\`projectDir\`). This is a real milestone — let them see it.
 
 **Connecting an existing codebase to a new Wix site** — you're in a non-empty directory that has no \`wix.config.json\`:
 
@@ -61,7 +60,6 @@ node bootstrap.mjs
 2. Adjust \`wix.config.json\` (set \`outputDirectory\`) accordingly.
 3. Build the project (if needed).
 4. Release the project: \`wix release\`.
-5. Tell the user, in a short and upbeat message, that the site is **live** (give the live URL), the **dashboard** is at \`https://manage.wix.com/dashboard/<siteId>\`, and the project is set up locally (\`projectDir\`). This is a real milestone — let them see it.
 
 **Starting from scratch** — a prompt with no existing project (empty directory). Derive a human **business name** and a kebab-case **folder name** from the prompt, then create a new Wix CLI Headless project:
 
@@ -74,6 +72,10 @@ npm create @wix/new@latest headless -- \\
 \`\`\`
 
 \`<business-name>\` must contain at least one letter or number; \`<folder-name>\` must match \`^[a-z0-9][a-z0-9-]*$\` (e.g. \`Acme Bakery\` → \`acme-bakery\`). Ask the user if you can't derive a sensible name.
+
+### Report the result
+
+Once the site is live — after \`wix release\` above, or from the bootstrap's final \`done\` event when starting from scratch — tell the user: the site is **live** (give the live URL), the **dashboard** is at \`https://manage.wix.com/dashboard/<siteId>\`, and the project is set up locally (\`projectDir\`). Be clear that it's still an **empty starter site** — their real content and branding come next, so the work is just beginning.
 
 ### Relay these events
 
@@ -89,15 +91,7 @@ The script emits one JSON object per line:
 
 ## Phase 2 — Connect a Business Solution (agentic)
 
-Identify the single solution the project files or prompt imply:
-
-- booking/calendar UI → **Bookings**
-- products/cart/checkout → **Stores**
-- contact/lead form → **Forms/CMS**
-
-It's usually **just one** — connect only what the design actually shows, never the full set "just in case". Then **ask the user whether to connect it now**, e.g. *"Your site has a booking form — want me to connect it to Wix Bookings so real bookings land in your dashboard? It takes a few minutes."* Continue **only if they say yes**.
-
-### 2a. Install the Wix Headless skills
+### Install the Wix Headless skills
 
 \`\`\`bash
 wix skills add
@@ -107,7 +101,7 @@ npx skills add wix/skills --yes
 
 The skills land in \`.agents/skills/\`.
 
-### 2b. Prepare the Wix site
+### Prepare the Wix site
 
 Follow the \`wix-manage\` skill to seed data and install the needed Business Solution.
 
@@ -118,18 +112,13 @@ Authorization: Bearer $(npx @wix/cli@latest token --site "$SITE_ID")
 wix-site-id: $SITE_ID
 \`\`\`
 
-### 2c. Implement the Business Solution logic
+### Implement the Business Solution logic
 
 This depends on the mode you picked in Phase 1.
 
 **Continuing an existing project / site:**
 
 Implement the needed Business Solution following its dedicated skill in \`references/<business-solution>\`. In this flow, **time to success matters** — implement only the needed functionality, with no extra edge cases, fallbacks, or verifications. Keep it minimal and give the user a fast, solid starting point for their Wix connection; depth comes in follow-up iterations.
-
-Implementation gotchas:
-
-- **Replace any mock *displayed* data, not just its submit handler.** Designs fake their option lists too (hardcoded date/time chips with seeded "taken" flags). Serve real options from a read endpoint (e.g. \`GET /api/availability\`) and render only those, so everything selectable is actually bookable.
-- **Stores/checkout: map the cart to real catalog refs — don't drop rows or trust client-only options.** A brought-in SPA cart keys each row by a client-only composite (e.g. \`productId + "::" + grind\`) — that key is **not** a catalog id. Check out with the **real product id** (the silent trap is a \`.filter(Boolean)\` that drops unmatched rows, so items vanish from the Wix order summary with no error). Sum quantities per catalog id; treat client-only options as cosmetic unless seeded as real variants/modifiers; reset the checkout button's loading flag on \`pageshow\` (otherwise a bfcache Back leaves it stuck on "Starting checkout…"). Full recipe: \`.agents/skills/wix-headless/references/custom/ecom/WIRING.md\` (§ "Sharp edges — bridging the SPA's cart to Wix line items").
 
 **Starting from scratch:**
 

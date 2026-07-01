@@ -118,11 +118,6 @@ This depends on the mode you picked in Phase 1.
 
 Implement the needed Business Solution following its dedicated skill in \`references/<business-solution>\`. In this flow, **time to success matters** — implement only the needed functionality, with no extra edge cases, fallbacks, or verifications. Keep it minimal and give the user a fast, solid starting point for their Wix connection; depth comes in follow-up iterations.
 
-Implementation gotchas:
-
-- **Replace any mock *displayed* data, not just its submit handler.** Designs fake their option lists too (hardcoded date/time chips with seeded "taken" flags). Serve real options from a read endpoint (e.g. \`GET /api/availability\`) and render only those, so everything selectable is actually bookable.
-- **Stores/checkout: map the cart to real catalog refs — don't drop rows or trust client-only options.** A brought-in SPA cart keys each row by a client-only composite (e.g. \`productId + "::" + grind\`) — that key is **not** a catalog id. Check out with the **real product id** (the silent trap is a \`.filter(Boolean)\` that drops unmatched rows, so items vanish from the Wix order summary with no error). Sum quantities per catalog id; treat client-only options as cosmetic unless seeded as real variants/modifiers; reset the checkout button's loading flag on \`pageshow\` (otherwise a bfcache Back leaves it stuck on "Starting checkout…"). Full recipe: \`.agents/skills/wix-headless/references/custom/ecom/WIRING.md\` (§ "Sharp edges — bridging the SPA's cart to Wix line items").
-
 **Starting from scratch:**
 
 Use \`references/DISCOVERY-create.md\`.

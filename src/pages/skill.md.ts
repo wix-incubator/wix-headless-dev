@@ -73,10 +73,6 @@ npm create @wix/new@latest headless -- \\
 
 \`<business-name>\` must contain at least one letter or number; \`<folder-name>\` must match \`^[a-z0-9][a-z0-9-]*$\` (e.g. \`Acme Bakery\` → \`acme-bakery\`). Ask the user if you can't derive a sensible name.
 
-### Report the result
-
-Once the site is live — after \`wix release\` above, or from the bootstrap's final \`done\` event when starting from scratch — tell the user: the site is **live** (give the live URL), the **dashboard** is at \`https://manage.wix.com/dashboard/<siteId>\`, and the project is set up locally (\`projectDir\`). Be clear that it's still an **empty starter site** — their real content and branding come next, so the work is just beginning.
-
 ### Relay these events
 
 The script emits one JSON object per line:
@@ -123,6 +119,12 @@ Implement the needed Business Solution following its dedicated skill in \`refere
 **Starting from scratch:**
 
 Use \`references/DISCOVERY-create.md\`.
+
+### Report the result
+
+Report the live site to the user **only after the first real, valuable iteration** — the Business Solution is connected and the site shows actual content, not the starter template. Then tell them: the site is **live** (give the live URL), the **dashboard** is at \`https://manage.wix.com/dashboard/<siteId>\`, and the project is set up locally (\`projectDir\`). Don't hand over the URL before this — a freshly scaffolded site is an empty starter template, and sharing that link presents the wrong content as "your site".
+
+If something blocks the Business Solution and you're genuinely stuck **after a few real attempts to fix it**, don't hide it: report the site and URLs as above, but say plainly that the connection isn't finished yet and what the outstanding issue is. Never present a half-wired site as done.
 `;
 
 export const prerender = false;

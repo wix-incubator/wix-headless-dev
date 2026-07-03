@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 
-const CACHE_HEADER = "public, s-maxage=600, stale-while-revalidate=86400";
+const CACHE_HEADER = "public, s-maxage=60, stale-while-revalidate=300";
 
 const BODY = `---
 name: wix-headless

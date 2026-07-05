@@ -49,6 +49,8 @@ node bootstrap.mjs
 
 ### Pick the mode
 
+\`CI=1\` forces plain non-interactive CLI output (no spinner TUI) — keep it on every Wix CLI command.
+
 **Continuing a deployed site** — the user gave you a Wix download URL, or you're already in a folder with a \`wix.config.json\`:
 
 1. Adjust \`wix.config.json\` (set \`outputDirectory\`) accordingly.

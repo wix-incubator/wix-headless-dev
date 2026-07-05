@@ -49,8 +49,6 @@ node bootstrap.mjs
 
 ### Pick the mode
 
-All Wix CLI commands below are prefixed with \`CI=1\` — it switches the CLI's interactive spinner UI to plain line-by-line output. Without it, captured (non-TTY) output — the normal case when an agent runs the command — fills with ANSI spinner redraw frames (megabytes of them on the scaffold).
-
 **Continuing a deployed site** — the user gave you a Wix download URL, or you're already in a folder with a \`wix.config.json\`:
 
 1. Adjust \`wix.config.json\` (set \`outputDirectory\`) accordingly.

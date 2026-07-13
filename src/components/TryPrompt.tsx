@@ -13,7 +13,7 @@ const PLATFORMS = [
 type PlatformId = typeof PLATFORMS[number]["id"];
 
 function getCreateProjectUrl(platformId: string, prompt: string): string {
-  return `https://manage.wix.com/setup-headless-business?platform=${encodeURIComponent(platformId)}&prompt=${encodeURIComponent(prompt)}`;
+  return `https://manage.wix.com/setup-headless-business?origin=headless-dev&platform=${encodeURIComponent(platformId)}&prompt=${encodeURIComponent(prompt)}`;
 }
 
 function PlatformIcon({ id }: { id: PlatformId }) {

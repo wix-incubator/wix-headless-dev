@@ -967,6 +967,79 @@ html, body {
 .footer a { color: var(--fg-muted); text-decoration: none; }
 .footer a:hover { color: var(--fg); }
 
+/* ===== Platform strip (vibe-coding platform CTAs above the prompt) ===== */
+.tryprompt__platforms {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.tryprompt__platforms-label {
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  color: var(--fg-faint);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.platform-strip {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.platform-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  color: var(--fg-muted);
+  min-width: 60px;
+}
+.platform-btn:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-card-2);
+  color: var(--fg);
+}
+.platform-btn.is-selected {
+  border-color: rgba(250, 255, 0, 0.4);
+  background: rgba(250, 255, 0, 0.04);
+  color: var(--fg);
+}
+.platform-btn__icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.platform-btn__label {
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.04em;
+}
+
+/* Create Project variant of the copy button */
+.tryprompt__create {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  color: var(--accent) !important;
+  border-color: rgba(250, 255, 0, 0.3) !important;
+  background: rgba(250, 255, 0, 0.04) !important;
+}
+.tryprompt__create:hover {
+  background: rgba(250, 255, 0, 0.09) !important;
+  border-color: rgba(250, 255, 0, 0.5) !important;
+}
+
 /* ===== TryPrompt (inside prompt block) ===== */
 .tryprompt {
   width: 100%;

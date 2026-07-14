@@ -1370,6 +1370,14 @@ html, body {
     radial-gradient(80% 100% at 100% 0%, rgba(250, 255, 0, 0.06) 0%, transparent 60%),
     var(--bg-card-2);
 }
+/* Too-soon slots: within the 48h booking lead time. Shown for context but not
+   selectable — the late-booking policy would reject them at checkout. */
+.book-day__slot.is-unavailable {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+.book-day__slot.is-unavailable:hover { border-color: var(--border); }
 
 @media (max-width: 820px) {
   /* Hide the desktop nav row; mobile uses native scroll/swipe. */

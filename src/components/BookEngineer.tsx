@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { submittedContact, notes } from "@wix/crm";
-import { book, navigateToCheckout, BookResultType, type SelectedSlot } from "./bookingDriver";
+import {
+  book,
+  navigateToCheckout,
+  BookResultType,
+  isSlotTooSoon,
+  MIN_BOOKING_LEAD_HOURS,
+  type SelectedSlot,
+} from "./bookingDriver";
 
 type Phase =
   | "pick"
@@ -91,6 +98,13 @@ export default function BookEngineer({
 
   const service = initialService;
   const slots = initialSlots;
+
+  // Slots are fetched server-side and the SSR page can be served stale (CDN /
+  // aged tab), so re-check the 48h lead time against the live clock. Pinned at
+  // mount for the picker; the submit path uses live time as the real gate.
+  const nowMs = useMemo(() => Date.now(), []);
+  const isTooSoon = (s: Slot) => isSlotTooSoon(s?.localStartDate ?? s?.startDate, nowMs);
+  const tooSoonMessage = `This time is too soon to book — appointments must be booked at least ${MIN_BOOKING_LEAD_HOURS} hours in advance. Please pick a later time.`;
 
   const availableStaff = useMemo(() => {
     const ids = new Set<string>();
@@ -190,6 +204,13 @@ export default function BookEngineer({
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSlot || !service) return;
+    // Live re-check: the slot may have aged under the lead time since the page
+    // was rendered. Fail fast with a clear message instead of a raw 428.
+    if (isSlotTooSoon(selectedSlot.localStartDate ?? selectedSlot.startDate)) {
+      setPhase("error");
+      setError(tooSoonMessage);
+      return;
+    }
     setPhase("submitting");
     setError(null);
     try {
@@ -262,7 +283,14 @@ export default function BookEngineer({
       setPhase("done");
     } catch (e: any) {
       setPhase("error");
-      setError(e?.message ?? "Couldn't complete the booking. Please try again.");
+      const msg = String(e?.message ?? "");
+      if (isSlotTooSoon(selectedSlot.localStartDate ?? selectedSlot.startDate)) {
+        setError(tooSoonMessage);
+      } else if (/SLOT_NOT_AVAILABLE|FAILED_PRECONDITION|not available|precondition/i.test(msg)) {
+        setError("That time is no longer available — please pick another.");
+      } else {
+        setError(e?.message ?? "Couldn't complete the booking. Please try again.");
+      }
     }
   };
 
@@ -522,14 +550,23 @@ export default function BookEngineer({
                 {daySlots.slice(0, 3).map((slot, i) => {
                   const start = new Date(slot.localStartDate ?? slot.startDate);
                   const who = slotStaff(slot);
+                  const tooSoon = isTooSoon(slot);
                   return (
                     <li key={i}>
                       <button
                         type="button"
-                        className={`book-day__slot ${selectedSlot === slot ? "is-selected" : ""}`}
+                        className={`book-day__slot ${selectedSlot === slot ? "is-selected" : ""} ${tooSoon ? "is-unavailable" : ""}`}
                         onClick={() => setSelectedSlot(slot)}
+                        disabled={tooSoon}
                         aria-pressed={selectedSlot === slot}
-                        aria-label={who ? `${timeOnlyFmt(start)} with ${who.info.name}` : timeOnlyFmt(start)}
+                        aria-label={
+                          tooSoon
+                            ? `${timeOnlyFmt(start)} unavailable — must be booked at least ${MIN_BOOKING_LEAD_HOURS} hours ahead`
+                            : who
+                              ? `${timeOnlyFmt(start)} with ${who.info.name}`
+                              : timeOnlyFmt(start)
+                        }
+                        title={tooSoon ? tooSoonMessage : undefined}
                       >
                         <span>{timeOnlyFmt(start)}</span>
                       </button>

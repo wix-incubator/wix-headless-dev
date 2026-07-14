@@ -5,6 +5,23 @@ import { redirects } from "@wix/redirects";
 export const BOOKING_APP_ID = "13d21c63-b5ec-5912-8397-c3a5ddb27a97";
 export const STAFF_MEMBER_RESOURCE_TYPE_ID = "1cd44cf8-756f-41c3-bd90-3e2ffcaf1155";
 
+// The site's Bookings late-booking policy rejects slots closer than this
+// (CreateBooking fails with SLOT_NOT_AVAILABLE). The slot list can be stale
+// (SSR page served from CDN / an aged tab), so the picker and the submit path
+// re-check the lead time against the live clock.
+export const MIN_BOOKING_LEAD_HOURS = 48;
+export const MIN_BOOKING_LEAD_MS = MIN_BOOKING_LEAD_HOURS * 60 * 60 * 1000;
+
+export function isSlotTooSoon(
+  localStartDate?: string,
+  nowMs: number = Date.now(),
+): boolean {
+  if (!localStartDate) return false;
+  const startMs = new Date(localStartDate).getTime();
+  if (Number.isNaN(startMs)) return false;
+  return startMs - nowMs < MIN_BOOKING_LEAD_MS;
+}
+
 export type FormValues = Record<string, unknown>;
 
 export interface SelectedSlot {

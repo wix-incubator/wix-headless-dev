@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { analytics } from "@wix/site";
 
 const PMS = [
   { id: "npm", label: "npm", command: "create @wix/new@latest headless" },
@@ -44,6 +45,7 @@ export default function CliQuickstart() {
     }
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1500);
+    analytics.buttonClicked();
   };
 
   return (

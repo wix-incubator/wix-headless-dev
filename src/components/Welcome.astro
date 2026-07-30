@@ -28,18 +28,17 @@ try {
       return SERVICE_HINTS.some((h) => n.includes(h));
     }) ?? all[0] ?? null;
   if (bookingService?._id) {
-    const pad = (n: number) => String(n).padStart(2, "0");
-    const isoLocal = (d: Date) =>
-      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    const from = new Date();
-    from.setHours(from.getHours() + 48);
-    const to = new Date(from);
-    to.setDate(to.getDate() + 14);
+    // Query in UTC so localStartDate/localEndDate come back as UTC wall time —
+    // the client appends "Z" and formats in the visitor's browser timezone.
+    const isoUTC = (d: Date) => d.toISOString().slice(0, 19);
+    const from = new Date(Date.now() + 48 * 60 * 60 * 1000);
+    const to = new Date(from.getTime() + 14 * 24 * 60 * 60 * 1000);
     const [slotsRes, staffRes] = await Promise.all([
       availabilityTimeSlots.listAvailabilityTimeSlots({
         serviceId: bookingService._id,
-        fromLocalDate: isoLocal(from),
-        toLocalDate: isoLocal(to),
+        fromLocalDate: isoUTC(from),
+        toLocalDate: isoUTC(to),
+        timeZone: "UTC",
         bookable: true,
         // Required for slots to come back with `availableResources` populated
         // (the list of staff free at each slot). Without it the staff-filter

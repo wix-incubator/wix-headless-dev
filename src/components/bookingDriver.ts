@@ -12,12 +12,19 @@ export const STAFF_MEMBER_RESOURCE_TYPE_ID = "1cd44cf8-756f-41c3-bd90-3e2ffcaf11
 export const MIN_BOOKING_LEAD_HOURS = 48;
 export const MIN_BOOKING_LEAD_MS = MIN_BOOKING_LEAD_HOURS * 60 * 60 * 1000;
 
+// Slots are queried with timeZone "UTC", so their offset-less localStartDate
+// strings are UTC wall time. Parse them as real instants; the browser's
+// toLocaleString then renders them in the visitor's timezone.
+export function slotDate(iso: string): Date {
+  return new Date(/Z$|[+-]\d\d:?\d\d$/.test(iso) ? iso : `${iso}Z`);
+}
+
 export function isSlotTooSoon(
   localStartDate?: string,
   nowMs: number = Date.now(),
 ): boolean {
   if (!localStartDate) return false;
-  const startMs = new Date(localStartDate).getTime();
+  const startMs = slotDate(localStartDate).getTime();
   if (Number.isNaN(startMs)) return false;
   return startMs - nowMs < MIN_BOOKING_LEAD_MS;
 }

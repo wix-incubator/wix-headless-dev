@@ -5,6 +5,7 @@ import {
   navigateToCheckout,
   BookResultType,
   isSlotTooSoon,
+  slotDate,
   MIN_BOOKING_LEAD_HOURS,
   type SelectedSlot,
 } from "./bookingDriver";
@@ -30,7 +31,7 @@ type Props = {
 };
 
 const dayKey = (iso: string) => {
-  const d = new Date(iso);
+  const d = slotDate(iso);
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 };
 const dateHeaderFmt = (d: Date) =>
@@ -138,7 +139,7 @@ export default function BookEngineer({
       const key = dayKey(iso);
       let bucket = groups.get(key);
       if (!bucket) {
-        bucket = { date: new Date(iso), slots: [] };
+        bucket = { date: slotDate(iso), slots: [] };
         groups.set(key, bucket);
       }
       bucket.slots.push(s);
@@ -223,7 +224,10 @@ export default function BookEngineer({
         serviceId: service._id,
         localStartDate: selectedSlot.localStartDate ?? selectedSlot.startDate,
         localEndDate: selectedSlot.localEndDate ?? selectedSlot.endDate,
-        timezone: selectedSlot.timezone ?? service.schedule?.timezone,
+        // Slots are queried in UTC, so their local dates are UTC wall time —
+        // never fall back to the business timezone here or the booked instant
+        // shifts by the offset.
+        timezone: selectedSlot.timeZone ?? selectedSlot.timezone ?? "UTC",
         scheduleId: selectedSlot.scheduleId,
         locationId: selectedSlot.location?._id ?? selectedSlot.location?.id,
         locationType: selectedSlot.location?.locationType,
@@ -297,7 +301,7 @@ export default function BookEngineer({
   const formatSlot = (s: Slot | null): string => {
     const iso = s?.localStartDate ?? s?.startDate;
     if (!iso) return "";
-    const d = new Date(iso);
+    const d = slotDate(iso);
     return d.toLocaleString(undefined, {
       weekday: "short",
       month: "short",
@@ -548,7 +552,7 @@ export default function BookEngineer({
               <h3 className="book-day__header">{dateHeaderFmt(date)}</h3>
               <ul className="book-day__slots">
                 {daySlots.slice(0, 3).map((slot, i) => {
-                  const start = new Date(slot.localStartDate ?? slot.startDate);
+                  const start = slotDate(slot.localStartDate ?? slot.startDate);
                   const who = slotStaff(slot);
                   const tooSoon = isTooSoon(slot);
                   return (

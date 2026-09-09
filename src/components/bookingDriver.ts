@@ -1,4 +1,4 @@
-import { bookings } from "@wix/bookings";
+import { bookings, availabilityTimeSlots } from "@wix/bookings";
 import { createCart, calculateCart, placeOrder } from "@wix/auto_sdk_ecom_cart-v-2";
 import { redirects } from "@wix/redirects";
 
@@ -27,6 +27,46 @@ export function isSlotTooSoon(
   const startMs = slotDate(localStartDate).getTime();
   if (Number.isNaN(startMs)) return false;
   return startMs - nowMs < MIN_BOOKING_LEAD_MS;
+}
+
+export function isSlotPast(
+  localStartDate?: string,
+  nowMs: number = Date.now(),
+): boolean {
+  if (!localStartDate) return false;
+  const startMs = slotDate(localStartDate).getTime();
+  if (Number.isNaN(startMs)) return false;
+  return startMs <= nowMs;
+}
+
+export const SLOT_WINDOW_DAYS = 14;
+
+// Shared by the SSR render (Welcome.astro) and the client-side refresh in
+// BookEngineer: the rendered HTML can be served from a cache long after the
+// window it queried has passed, so the browser re-runs the same query when the
+// SSR slots look stale.
+export async function listBookableSlots(service: any) {
+  // Query in UTC so localStartDate/localEndDate come back as UTC wall time —
+  // slotDate() appends "Z" and formats in the visitor's browser timezone.
+  const isoUTC = (d: Date) => d.toISOString().slice(0, 19);
+  const from = new Date(Date.now() + MIN_BOOKING_LEAD_MS);
+  const to = new Date(from.getTime() + SLOT_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+  const res = await availabilityTimeSlots.listAvailabilityTimeSlots({
+    serviceId: service._id,
+    fromLocalDate: isoUTC(from),
+    toLocalDate: isoUTC(to),
+    timeZone: "UTC",
+    bookable: true,
+    // Required for slots to come back with `availableResources` populated
+    // (the list of staff free at each slot). Without it the staff-filter
+    // chips in BookEngineer never appear because `availableStaff` stays
+    // empty. The field exists at runtime on the service response but
+    // isn't on the v2 Service TS interface — hence the `any`.
+    ...(service.primaryResourceType && {
+      includeResourceTypeIds: [service.primaryResourceType],
+    }),
+  });
+  return res.timeSlots ?? [];
 }
 
 export type FormValues = Record<string, unknown>;

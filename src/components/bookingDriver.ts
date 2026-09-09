@@ -29,22 +29,11 @@ export function isSlotTooSoon(
   return startMs - nowMs < MIN_BOOKING_LEAD_MS;
 }
 
-export function isSlotPast(
-  localStartDate?: string,
-  nowMs: number = Date.now(),
-): boolean {
-  if (!localStartDate) return false;
-  const startMs = slotDate(localStartDate).getTime();
-  if (Number.isNaN(startMs)) return false;
-  return startMs <= nowMs;
-}
-
 export const SLOT_WINDOW_DAYS = 14;
 
-// Shared by the SSR render (Welcome.astro) and the client-side refresh in
-// BookEngineer: the rendered HTML can be served from a cache long after the
-// window it queried has passed, so the browser re-runs the same query when the
-// SSR slots look stale.
+// Always called from the browser (BookEngineer, on mount): the SSR HTML can be
+// served from a cache long after render, so a server-fetched slot list would
+// eventually show only past dates.
 export async function listBookableSlots(service: any) {
   // Query in UTC so localStartDate/localEndDate come back as UTC wall time —
   // slotDate() appends "Z" and formats in the visitor's browser timezone.

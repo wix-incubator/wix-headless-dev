@@ -5,7 +5,6 @@ import {
   navigateToCheckout,
   BookResultType,
   isSlotTooSoon,
-  isSlotPast,
   listBookableSlots,
   slotDate,
   MIN_BOOKING_LEAD_HOURS,
@@ -28,7 +27,6 @@ type StaffInfo = { name: string; imageUrl?: string; description?: string };
 
 type Props = {
   initialService?: Service | null;
-  initialSlots?: Slot[];
   staffById?: Record<string, StaffInfo>;
 };
 
@@ -65,11 +63,10 @@ function Avatar({ name, imageUrl, size = 22 }: { name?: string; imageUrl?: strin
 
 export default function BookEngineer({
   initialService = null,
-  initialSlots = [],
   staffById = {},
 }: Props) {
-  const hasData = !!initialService && initialSlots.length > 0;
-  const [phase, setPhase] = useState<Phase>(hasData ? "pick" : "request");
+  const hasService = !!initialService?._id;
+  const [phase, setPhase] = useState<Phase>(hasService ? "pick" : "request");
   const [error, setError] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [name, setName] = useState("");
@@ -100,41 +97,34 @@ export default function BookEngineer({
   };
 
   const service = initialService;
-  const [slots, setSlots] = useState<Slot[]>(initialSlots);
-  const [refreshing, setRefreshing] = useState(false);
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [loading, setLoading] = useState(hasService);
 
-  // Slots are fetched server-side and the SSR page can be served stale (CDN /
-  // aged tab), so re-check the 48h lead time against the live clock. Pinned at
-  // mount for the picker; the submit path uses live time as the real gate.
+  // The tab can outlive the fetched window (left open for days), so re-check
+  // the 48h lead time against the clock. Pinned at mount for the picker; the
+  // submit path uses live time as the real gate.
   const nowMs = useMemo(() => Date.now(), []);
   const slotStartIso = (s: Slot) => s?.localStartDate ?? s?.startDate;
   const isTooSoon = (s: Slot) => isSlotTooSoon(slotStartIso(s), nowMs);
   const tooSoonMessage = `This time is too soon to book — appointments must be booked at least ${MIN_BOOKING_LEAD_HOURS} hours in advance. Please pick a later time.`;
 
-  // A fresh SSR render only queries slots ≥48h out, so any too-soon slot means
-  // the HTML we got is stale (the BaaS HTML cache is purged only on release).
-  // Refetch availability from the browser so the picker shows the real window
-  // instead of dates that have already passed.
+  // Availability is always fetched from the browser: the SSR HTML can be
+  // served from a cache long after the slot window it would have queried has
+  // passed, so a server-rendered slot list ends up showing past dates.
   useEffect(() => {
-    if (!service?._id || initialSlots.length === 0) return;
-    if (!initialSlots.some((s) => isSlotTooSoon(slotStartIso(s), nowMs))) return;
+    if (!service?._id) return;
     let cancelled = false;
-    setRefreshing(true);
     listBookableSlots(service)
       .then((fresh) => {
         if (cancelled) return;
         setSlots(fresh);
-        setSelectedSlot(null);
         if (fresh.length === 0) setPhase("request");
       })
       .catch(() => {
-        // Keep the SSR slots; past ones are filtered out of the picker below,
-        // so worst case the visitor sees fewer (but real) options.
-        if (cancelled) return;
-        if (!initialSlots.some((s) => !isSlotPast(slotStartIso(s)))) setPhase("request");
+        if (!cancelled) setPhase("request");
       })
       .finally(() => {
-        if (!cancelled) setRefreshing(false);
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
@@ -159,16 +149,12 @@ export default function BookEngineer({
   }, [slots, staffById]);
 
   const visibleSlots = useMemo(() => {
-    // Never render slots that already started — a stale cached page would
-    // otherwise fill the picker with past dates. Future-but-<48h slots stay
-    // visible (disabled) so an aged tab still explains why they're off.
-    const upcoming = slots.filter((s) => !isSlotPast(slotStartIso(s), nowMs));
-    if (!filterStaffId) return upcoming;
-    return upcoming.filter((s) => {
+    if (!filterStaffId) return slots;
+    return slots.filter((s) => {
       const list = s?.availableResources?.[0]?.resources ?? [];
       return list.some((r: any) => (r?._id ?? r?.id) === filterStaffId);
     });
-  }, [slots, filterStaffId, nowMs]);
+  }, [slots, filterStaffId]);
 
   const slotsByDay = useMemo(() => {
     const groups = new Map<string, { date: Date; slots: Slot[] }>();
@@ -205,7 +191,7 @@ export default function BookEngineer({
     setDescription("");
     setError(null);
     setFilterStaffId(null);
-    setPhase(hasData ? "pick" : "request");
+    setPhase(hasService && slots.length > 0 ? "pick" : "request");
   };
 
   const submitRequest = async (e: React.FormEvent) => {
@@ -522,8 +508,8 @@ export default function BookEngineer({
     <div className="book-inline">
       {slotsByDay.length === 0 ? (
         <p className="book-inline__empty">
-          {refreshing
-            ? "Checking the latest availability…"
+          {loading
+            ? "Checking availability…"
             : "No upcoming slots for that engineer in the next two weeks."}
         </p>
       ) : (

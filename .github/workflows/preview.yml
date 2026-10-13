@@ -1,0 +1,87 @@
+name: PR Preview
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  preview:
+    # Skip PRs from forks — they don't get secrets and would fail at wix login.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git init -q .
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --depth=1 origin "$PR_SHA"
+          git checkout -q FETCH_HEAD
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wix login
+        env:
+          WIX_CLI_TOKEN: ${{ secrets.WIX_CLI_TOKEN }}
+        run: npx wix login --api-key "$WIX_CLI_TOKEN"
+
+      - name: Debug — whoami + visible sites
+        env:
+          WIX_CLI_TOKEN: ${{ secrets.WIX_CLI_TOKEN }}
+        run: |
+          echo "=== wix whoami ==="
+          npx wix whoami || true
+          echo
+          echo "=== Sites visible to this API key ==="
+          curl -sS -X POST https://www.wixapis.com/site-list/v2/sites/query \
+            -H "Authorization: $WIX_CLI_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"query":{}}' | jq '.sites[]? | {id, displayName: .displayName, ownerEmail: .owner.email}'
+
+      - name: Pull Wix env
+        run: npx wix env pull
+
+      - name: Build
+        run: npx wix build
+
+      - name: Create preview deployment
+        id: preview
+        run: |
+          set -o pipefail
+          npx wix preview 2>&1 | tee preview.log
+          url="$(grep -Eoi 'https?://[^[:space:]]+' preview.log | tail -n1)"
+          if [ -z "$url" ]; then
+            echo "Could not parse a preview URL from wix preview output." >&2
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Comment preview URL on PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+        run: |
+          marker='<!-- wix-preview -->'
+          body=$(printf '%s\n**Preview deployment ready** for commit `%s`\n\n%s\n' "$marker" "$PR_SHA" "$PREVIEW_URL")
+          existing_id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --paginate \
+            --jq ".[] | select(.body | contains(\"$marker\")) | .id" | head -n1)
+          if [ -n "$existing_id" ]; then
+            jq -n --arg body "$body" '{body: $body}' \
+              | gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$existing_id" --input -
+          else
+            jq -n --arg body "$body" '{body: $body}' \
+              | gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --input -
+          fi

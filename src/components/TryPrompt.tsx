@@ -84,8 +84,7 @@ function useIsMobile() {
   return isMobile;
 }
 
-const HOST = "wix-headless.dev";
-const SKILL_PATH = "/skill.md";
+const HOST = "wix.com/headless/skill.md";
 
 const TYPE_MS = 38;
 const ERASE_MS = 22;
@@ -143,7 +142,7 @@ export default function TryPrompt() {
 
   const copyText = useMemo(() => {
     const effectiveIntent = userText.trim() || placeholder;
-    return `build ${effectiveIntent} using https://${HOST}${SKILL_PATH}`;
+    return `build ${effectiveIntent} using https://www.wix.com/headless/skill.md`;
   }, [userText, placeholder]);
 
   const handleCopy = async () => {

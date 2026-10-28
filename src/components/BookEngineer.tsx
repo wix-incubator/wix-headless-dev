@@ -5,6 +5,7 @@ import {
   navigateToCheckout,
   BookResultType,
   isSlotTooSoon,
+  listBookableSlots,
   slotDate,
   MIN_BOOKING_LEAD_HOURS,
   type SelectedSlot,
@@ -26,7 +27,6 @@ type StaffInfo = { name: string; imageUrl?: string; description?: string };
 
 type Props = {
   initialService?: Service | null;
-  initialSlots?: Slot[];
   staffById?: Record<string, StaffInfo>;
 };
 
@@ -63,11 +63,10 @@ function Avatar({ name, imageUrl, size = 22 }: { name?: string; imageUrl?: strin
 
 export default function BookEngineer({
   initialService = null,
-  initialSlots = [],
   staffById = {},
 }: Props) {
-  const hasData = !!initialService && initialSlots.length > 0;
-  const [phase, setPhase] = useState<Phase>(hasData ? "pick" : "request");
+  const hasService = !!initialService?._id;
+  const [phase, setPhase] = useState<Phase>(hasService ? "pick" : "request");
   const [error, setError] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [name, setName] = useState("");
@@ -98,14 +97,40 @@ export default function BookEngineer({
   };
 
   const service = initialService;
-  const slots = initialSlots;
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [loading, setLoading] = useState(hasService);
 
-  // Slots are fetched server-side and the SSR page can be served stale (CDN /
-  // aged tab), so re-check the 48h lead time against the live clock. Pinned at
-  // mount for the picker; the submit path uses live time as the real gate.
+  // The tab can outlive the fetched window (left open for days), so re-check
+  // the 48h lead time against the clock. Pinned at mount for the picker; the
+  // submit path uses live time as the real gate.
   const nowMs = useMemo(() => Date.now(), []);
-  const isTooSoon = (s: Slot) => isSlotTooSoon(s?.localStartDate ?? s?.startDate, nowMs);
+  const slotStartIso = (s: Slot) => s?.localStartDate ?? s?.startDate;
+  const isTooSoon = (s: Slot) => isSlotTooSoon(slotStartIso(s), nowMs);
   const tooSoonMessage = `This time is too soon to book — appointments must be booked at least ${MIN_BOOKING_LEAD_HOURS} hours in advance. Please pick a later time.`;
+
+  // Availability is always fetched from the browser: the SSR HTML can be
+  // served from a cache long after the slot window it would have queried has
+  // passed, so a server-rendered slot list ends up showing past dates.
+  useEffect(() => {
+    if (!service?._id) return;
+    let cancelled = false;
+    listBookableSlots(service)
+      .then((fresh) => {
+        if (cancelled) return;
+        setSlots(fresh);
+        if (fresh.length === 0) setPhase("request");
+      })
+      .catch(() => {
+        if (!cancelled) setPhase("request");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const availableStaff = useMemo(() => {
     const ids = new Set<string>();
@@ -166,7 +191,7 @@ export default function BookEngineer({
     setDescription("");
     setError(null);
     setFilterStaffId(null);
-    setPhase(hasData ? "pick" : "request");
+    setPhase(hasService && slots.length > 0 ? "pick" : "request");
   };
 
   const submitRequest = async (e: React.FormEvent) => {
@@ -483,7 +508,9 @@ export default function BookEngineer({
     <div className="book-inline">
       {slotsByDay.length === 0 ? (
         <p className="book-inline__empty">
-          No upcoming slots for that engineer in the next two weeks.
+          {loading
+            ? "Checking availability…"
+            : "No upcoming slots for that engineer in the next two weeks."}
         </p>
       ) : (
         <div className="book-days-wrap">

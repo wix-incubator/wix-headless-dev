@@ -5,14 +5,17 @@ import Topbar from "./Topbar.astro";
 import Footer from "./Footer.astro";
 import BuildLog from "./BuildLog.astro";
 import BookEngineer from "./BookEngineer.tsx";
-import { services, availabilityTimeSlots, staffMembers } from "@wix/bookings";
+import { services, staffMembers } from "@wix/bookings";
 import Manual from "./Manual.astro";
 import "../styles/welcome.css";
 
 const SERVICE_HINTS = ["engineer", "consultation", "call", "talk", "office hours"];
 
+// Only the stable data (service + staff) is fetched at render time. Slot
+// availability is time-sensitive and the rendered HTML can be served from a
+// cache long after the window it queried has passed, so BookEngineer always
+// fetches slots from the browser instead.
 let bookingService: services.Service | null = null;
-let bookingSlots: availabilityTimeSlots.TimeSlot[] = [];
 let staffById: Record<string, { name: string; imageUrl?: string; description?: string }> = {};
 try {
   const servicesRes = await services
@@ -28,31 +31,12 @@ try {
       return SERVICE_HINTS.some((h) => n.includes(h));
     }) ?? all[0] ?? null;
   if (bookingService?._id) {
-    // Query in UTC so localStartDate/localEndDate come back as UTC wall time —
-    // the client appends "Z" and formats in the visitor's browser timezone.
-    const isoUTC = (d: Date) => d.toISOString().slice(0, 19);
-    const from = new Date(Date.now() + 48 * 60 * 60 * 1000);
-    const to = new Date(from.getTime() + 14 * 24 * 60 * 60 * 1000);
-    const [slotsRes, staffRes] = await Promise.all([
-      availabilityTimeSlots.listAvailabilityTimeSlots({
-        serviceId: bookingService._id,
-        fromLocalDate: isoUTC(from),
-        toLocalDate: isoUTC(to),
-        timeZone: "UTC",
-        bookable: true,
-        // Required for slots to come back with `availableResources` populated
-        // (the list of staff free at each slot). Without it the staff-filter
-        // chips in BookEngineer never appear because `availableStaff` stays
-        // empty. The field exists at runtime on the service response but
-        // isn't on the v2 Service TS interface — cast and conditional-spread.
-        ...((bookingService as any).primaryResourceType && {
-          includeResourceTypeIds: [(bookingService as any).primaryResourceType],
-        }),
-      }),
-      staffMembers.queryStaffMembers().limit(25).find().catch(() => ({ items: [] })),
-    ]);
+    const staffRes = await staffMembers
+      .queryStaffMembers()
+      .limit(25)
+      .find()
+      .catch(() => ({ items: [] }));
 
-    bookingSlots = slotsRes.timeSlots ?? [];
     const wixImageToUrl = (img: any): string | undefined => {
       if (!img) return undefined;
       if (typeof img === "string") {
@@ -73,7 +57,6 @@ try {
   }
 } catch {
   bookingService = null;
-  bookingSlots = [];
   staffById = {};
 }
 ---
@@ -260,7 +243,7 @@ try {
       <p class="contact__lede">
         Stuck, evaluating, or just curious how Wix Headless fits your stack? Book 30 minutes with someone who built it. Powered by Wix Bookings &mdash; the same API your site would use.
       </p>
-      <BookEngineer client:load initialService={bookingService} initialSlots={bookingSlots} staffById={staffById} />
+      <BookEngineer client:load initialService={bookingService} staffById={staffById} />
     </section>
   </main>
 

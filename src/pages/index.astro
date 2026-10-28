@@ -1,6 +1,15 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Welcome from "../components/Welcome.astro";
+
+// Cap how long a cached copy can live — the BaaS HTML cache is only purged on
+// release, which can be weeks apart. Booking slots are fetched client-side so
+// they never go stale, but the rest of the SSR content (service, staff, blog
+// teasers) shouldn't age for weeks either.
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, s-maxage=600, stale-while-revalidate=86400",
+);
 ---
 
 <Layout>

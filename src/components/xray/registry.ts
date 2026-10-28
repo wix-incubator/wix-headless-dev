@@ -103,7 +103,7 @@ const { posts: postList } = await posts.listPosts({
     capability: "Wix Bookings",
     title: "Talk to an engineer",
     summary:
-      "Slots are fetched server-side at page render so the modal opens with availability already in hand. Each slot lists every staff member free at that time. Clicking Confirm calls createBooking from the browser as an anonymous visitor.",
+      "The service and staff are fetched server-side at page render; availability is always fetched from the browser so a cached page never shows stale slots. Each slot lists every staff member free at that time. Clicking Confirm calls createBooking from the browser as an anonymous visitor.",
     code: `import { services, availabilityTimeSlots, bookings } from "@wix/bookings";
 
 const { items: [service] } = await services
